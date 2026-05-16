@@ -266,7 +266,3 @@ class IndexedDBManager {
 // Instance globale
 const indexedDBManager = new IndexedDBManager();
 
-// Initialiser au chargement
-window.addEventListener('DOMContentLoaded', () => {
-    indexedDBManager.init().catch(err => console.error(err));
-});

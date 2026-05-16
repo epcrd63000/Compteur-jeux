@@ -50,7 +50,7 @@ class SupabaseClient {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'Signup failed');
+                throw new Error(error.message || error.msg || error.error_description || 'Signup failed');
             }
 
             const data = await response.json();
@@ -288,7 +288,3 @@ class SupabaseClient {
 // Instance globale
 const supabaseClient = new SupabaseClient();
 
-// Initialiser au chargement
-window.addEventListener('DOMContentLoaded', () => {
-    supabaseClient.init().catch(err => console.error(err));
-});
