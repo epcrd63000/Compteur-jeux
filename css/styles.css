@@ -1,0 +1,793 @@
+/* ============================================================================
+   VARIABLES CSS - THÈME ET CONFIGURATION GLOBALE
+   ============================================================================ */
+
+:root {
+    /* Couleurs */
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --bg-color: #ecf0f1;
+    --surface-color: #ffffff;
+    --border-color: #bdc3c7;
+    --text-color: #2c3e50;
+    --text-light: #7f8c8d;
+    
+    /* Espacement */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Typographie */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-lg: 20px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+    --font-size-3xl: 48px;
+    --font-size-5xl: 80px;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-base: 300ms ease-in-out;
+    --transition-slow: 500ms ease-in-out;
+}
+
+/* ============================================================================
+   RESET ET STYLES GLOBAUX
+   ============================================================================ */
+
+* {
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Permettre la sélection de texte pour la saisie */
+input, textarea, button {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* ============================================================================
+   STRUCTURE PRINCIPALE - PORTRAIT (MOBILE FIRST)
+   ============================================================================ */
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--bg-color);
+    position: relative;
+}
+
+.screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.screen.active {
+    display: flex;
+}
+
+.screen.hidden {
+    display: none !important;
+}
+
+/* ============================================================================
+   ÉCRAN D'AUTHENTIFICATION
+   ============================================================================ */
+
+.auth-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    z-index: 10;
+}
+
+.auth-form {
+    background-color: var(--surface-color);
+    border-radius: 16px;
+    padding: var(--spacing-xl);
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form h1 {
+    margin: 0 0 var(--spacing-lg) 0;
+    font-size: var(--font-size-2xl);
+    text-align: center;
+    color: var(--primary-color);
+}
+
+/* ============================================================================
+   ÉCRAN DE JEU - PORTRAIT (MOBILE FIRST)
+   ============================================================================ */
+
+.game-screen {
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+}
+
+/* Barre de miniatures (Portrait uniquement) */
+.miniatures-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--surface-color);
+    border-bottom: 2px solid var(--border-color);
+    overflow-x: auto;
+    scrollbar-width: none;
+    min-height: 80px;
+}
+
+.miniatures-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.miniature-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+.miniatures-container {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-shrink: 0;
+}
+
+.miniature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm);
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    min-width: 70px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+
+.miniature-card:hover {
+    background-color: #e8f4f8;
+}
+
+.miniature-card.active {
+    background-color: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.miniature-card.online::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--success-color);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.miniature-name {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-align: center;
+    word-wrap: break-word;
+    max-width: 70px;
+}
+
+.miniature-score {
+    font-size: var(--font-size-sm);
+    font-weight: bold;
+}
+
+/* Zone principale du jeu */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dashboard-left {
+    display: none;
+}
+
+/* Zone du joueur actif (Portrait) */
+.active-player-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    gap: var(--spacing-lg);
+    overflow-y: auto;
+}
+
+.active-player-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    text-align: center;
+}
+
+.player-name {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.score-display {
+    font-size: var(--font-size-5xl);
+    font-weight: bold;
+    color: var(--secondary-color);
+    line-height: 1;
+    animation: scoreUpdate 0.3s ease-out;
+}
+
+@keyframes scoreUpdate {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.round-info {
+    font-size: var(--font-size-lg);
+    color: var(--text-light);
+}
+
+/* Zone de contrôles du jeu */
+.game-controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Historique des coups */
+.moves-history {
+    width: 100%;
+    max-width: 300px;
+    max-height: 150px;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    overflow-y: auto;
+}
+
+.history-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: var(--spacing-sm);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--bg-color);
+    border-radius: 4px;
+}
+
+.history-item.undo {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+/* Barre de footer */
+.footer-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background-color: var(--surface-color);
+    border-top: 2px solid var(--border-color);
+    justify-content: space-between;
+}
+
+/* ============================================================================
+   ÉCRANS D'INTERFACE - PARAMÈTRES, DIALOGUES
+   ============================================================================ */
+
+.settings-screen {
+    overflow-y: auto;
+    z-index: 5;
+    background-color: var(--bg-color);
+}
+
+.settings-panel {
+    padding: var(--spacing-lg);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.settings-panel h2 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary-color);
+    font-size: var(--font-size-2xl);
+}
+
+.settings-section {
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+}
+
+.settings-section h3 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    color: var(--secondary-color);
+    font-size: var(--font-size-lg);
+}
+
+/* ============================================================================
+   FORMULAIRES ET INPUTS
+   ============================================================================ */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.form-input {
+    padding: var(--spacing-md);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: var(--font-size-base);
+    font-family: var(--font-family);
+    color: var(--text-color);
+    background-color: var(--surface-color);
+    transition: border-color var(--transition-fast);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* ============================================================================
+   BOUTONS
+   ============================================================================ */
+
+.btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: none;
+    border-radius: 8px;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    white-space: nowrap;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: #d5dbdb;
+    border-color: var(--text-color);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.btn-small {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* ============================================================================
+   DIALOGUES
+   ============================================================================ */
+
+dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    max-width: 90%;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.dialog-content {
+    padding: var(--spacing-xl);
+    background-color: var(--surface-color);
+}
+
+.dialog-content h3 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary-color);
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    justify-content: flex-end;
+}
+
+/* ============================================================================
+   ANIMATIONS ET ÉTATS
+   ============================================================================ */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-md);
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+    animation: slideIn var(--transition-base);
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    left: var(--spacing-lg);
+    right: var(--spacing-lg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    pointer-events: none;
+}
+
+.toast {
+    background-color: var(--surface-color);
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: slideIn var(--transition-base);
+    pointer-events: auto;
+}
+
+.toast.success {
+    border-left-color: var(--success-color);
+}
+
+.toast.danger {
+    border-left-color: var(--danger-color);
+}
+
+.toast.warning {
+    border-left-color: var(--warning-color);
+}
+
+/* ============================================================================
+   CANVAS POUR CONFETTIS
+   ============================================================================ */
+
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+}
+
+/* ============================================================================
+   MEDIA QUERIES - ORIENTATION PAYSAGE (LANDSCAPE)
+   ============================================================================ */
+
+@media (orientation: landscape) and (min-height: 400px) {
+    /* Cacher la barre de miniatures en paysage */
+    .miniatures-bar {
+        display: none;
+    }
+
+    /* Restructurer le layout principal */
+    .game-screen {
+        flex-direction: row;
+    }
+
+    .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        flex: 1;
+        width: 100%;
+    }
+
+    /* Afficher le tableau de bord à gauche */
+    .dashboard-left {
+        display: flex;
+        flex-direction: column;
+        border-right: 2px solid var(--border-color);
+        overflow-y: auto;
+        background-color: var(--surface-color);
+        padding: var(--spacing-md);
+    }
+
+    .players-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .player-dashboard-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        background-color: var(--bg-color);
+        border-radius: 8px;
+        border-left: 4px solid var(--border-color);
+        align-items: center;
+    }
+
+    .player-dashboard-item.active {
+        background-color: #e3f2fd;
+        border-left-color: var(--secondary-color);
+        box-shadow: inset 0 0 0 2px var(--secondary-color);
+    }
+
+    .player-info {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .player-info-name {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .player-info-stats {
+        font-size: var(--font-size-sm);
+        color: var(--text-light);
+    }
+
+    .player-info-score {
+        font-size: var(--font-size-lg);
+        font-weight: bold;
+        color: var(--secondary-color);
+    }
+
+    /* Agrandir un peu la zone active */
+    .active-player-zone {
+        grid-column: 2;
+        padding: var(--spacing-xl);
+    }
+
+    .score-display {
+        font-size: 6rem;
+    }
+
+    /* Réduire la hauteur du footer en paysage */
+    .footer-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: var(--spacing-md);
+        gap: var(--spacing-sm);
+    }
+
+    .active-player-zone {
+        padding-bottom: 120px;
+    }
+}
+
+/* ============================================================================
+   MEDIA QUERIES - GRAND ÉCRAN (DESKTOP)
+   ============================================================================ */
+
+@media (min-width: 768px) {
+    .settings-panel {
+        max-width: 500px;
+    }
+
+    .game-controls {
+        max-width: 400px;
+    }
+
+    .moves-history {
+        max-width: 400px;
+    }
+}
+
+/* ============================================================================
+   MODE SOMBRE (OPTIONNEL)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-color: #ecf0f1;
+        --bg-color: #2c3e50;
+        --surface-color: #34495e;
+        --border-color: #4a5f7e;
+        --text-color: #ecf0f1;
+        --text-light: #bdc3c7;
+    }
+
+    dialog {
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .score-display {
+        color: #3498db;
+    }
+}
+
+/* ============================================================================
+   ACCESSIBILITÉ
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible pour l'accessibilité au clavier */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--secondary-color);
+    outline-offset: 2px;
+}

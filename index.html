@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Compteur Jeux">
+    <meta name="theme-color" content="#2c3e50">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232c3e50' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' text-anchor='middle' dy='.3em' fill='%23fff'>10k</text></svg>">
+    <title>Compteur de Points Multi-Jeux</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- Zone de connexion -->
+        <div id="auth-screen" class="screen auth-screen">
+            <div class="auth-form">
+                <h1>Compteur de Points</h1>
+                <div class="form-group">
+                    <input type="email" id="email-input" placeholder="Email" class="form-input">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password-input" placeholder="Mot de passe" class="form-input">
+                </div>
+                <button id="login-btn" class="btn btn-primary">Se connecter</button>
+                <button id="signup-btn" class="btn btn-secondary">S'inscrire</button>
+                <div id="auth-error" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Zone principale du jeu -->
+        <div id="game-screen" class="screen game-screen hidden">
+            <!-- Barre de miniatures (Portrait) -->
+            <div class="miniatures-bar" id="miniatures-bar">
+                <div class="miniature-controls">
+                    <button class="icon-btn" id="settings-btn" title="Paramètres">⚙️</button>
+                </div>
+                <div class="miniatures-container" id="miniatures-container"></div>
+            </div>
+
+            <!-- Contenu principal -->
+            <div class="main-content">
+                <!-- Zone Tableau de bord (Paysage) -->
+                <div class="dashboard-left" id="dashboard-left">
+                    <div class="players-list" id="players-list"></div>
+                </div>
+
+                <!-- Zone joueur actif -->
+                <div class="active-player-zone" id="active-player-zone">
+                    <div class="active-player-card">
+                        <div class="player-name" id="current-player-name">Joueur</div>
+                        <div class="score-display" id="score-display">0</div>
+                        <div class="round-info">
+                            <span id="round-number">Tour 1</span>
+                        </div>
+                    </div>
+
+                    <!-- Zone de contrôles du module de jeu -->
+                    <div class="game-controls" id="game-controls"></div>
+
+                    <!-- Historique des coups -->
+                    <div class="moves-history" id="moves-history">
+                        <div class="history-title">Historique</div>
+                        <div class="history-list" id="history-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barre d'outils inférieure -->
+            <div class="footer-controls">
+                <button class="btn btn-small" id="undo-btn">↶ Annuler</button>
+                <button class="btn btn-small" id="edit-score-btn">✎ Éditer</button>
+                <button class="btn btn-danger" id="logout-btn">Déconnexion</button>
+            </div>
+        </div>
+
+        <!-- Zone de configuration -->
+        <div id="settings-screen" class="screen settings-screen hidden">
+            <div class="settings-panel">
+                <h2>Paramètres</h2>
+                
+                <div class="settings-section">
+                    <h3>Partie</h3>
+                    <div class="form-group">
+                        <label>Module de jeu:</label>
+                        <select id="game-module-select" class="form-input">
+                            <option value="10000">Le 10 000</option>
+                            <option value="scrabble">Scrabble (à venir)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Groupe:</label>
+                        <select id="group-select" class="form-input"></select>
+                    </div>
+                    <button id="create-group-btn" class="btn btn-secondary">Créer groupe</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Nouveaux joueurs</h3>
+                    <div class="players-manager" id="players-manager"></div>
+                    <button id="add-player-btn" class="btn btn-secondary">+ Ajouter joueur</button>
+                </div>
+
+                <button id="start-game-btn" class="btn btn-primary">Démarrer partie</button>
+                <button id="settings-close-btn" class="btn btn-secondary">Fermer</button>
+            </div>
+        </div>
+
+        <!-- Dialogue d'édition de score -->
+        <dialog id="edit-score-dialog" class="score-edit-dialog">
+            <div class="dialog-content">
+                <h3>Éditer le score</h3>
+                <input type="number" id="score-input" class="form-input" min="0">
+                <div class="dialog-buttons">
+                    <button id="score-confirm-btn" class="btn btn-primary">Confirmer</button>
+                    <button id="score-cancel-btn" class="btn btn-secondary">Annuler</button>
+                </div>
+            </div>
+        </dialog>
+
+        <!-- Dialogue de création de groupe -->
+        <dialog id="create-group-dialog" class="create-group-dialog">
+            <div class="dialog-content">
+                <h3>Créer un groupe</h3>
+                <input type="text" id="group-name-input" placeholder="Nom du groupe" class="form-input">
+                <div class="dialog-buttons">
+                    <button id="group-confirm-btn" class="btn btn-primary">Créer</button>
+                    <button id="group-cancel-btn" class="btn btn-secondary">Annuler</button>
+                </div>
+            </div>
+        </dialog>
+
+        <!-- Canvas pour les confettis (victoire) -->
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <!-- Toastify pour les notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/vendor/idb.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/db/indexeddb.js"></script>
+    <script src="js/api/supabase.js"></script>
+    <script src="js/nlp/french-number-parser.js"></script>
+    <script src="js/nlp/speech-recognition.js"></script>
+    <script src="js/gestures/swipe-detector.js"></script>
+    <script src="js/modules/engine.js"></script>
+    <script src="js/modules/game-10000.js"></script>
+    <script src="js/ui/responsive.js"></script>
+    <script src="js/sync/realtime-sync.js"></script>
+    <script src="js/ui/ui-manager.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Enregistrement du Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.warn('Service Worker registration failed:', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
