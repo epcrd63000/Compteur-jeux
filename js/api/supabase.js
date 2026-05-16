@@ -165,16 +165,16 @@ class SupabaseClient {
                     });
                 }
             } catch (error) {
-                console.error('[Supabase] Device signup failed', error);
-                // Si ça échoue, on continue en mode local
+                console.warn('[Supabase] Device signup failed, continuing in local mode', error);
+                // On continue en mode local
             }
         } else {
             // Connexion
             try {
                 await this.signIn(deviceId + '@compteur.local', devicePassword);
             } catch (error) {
-                console.error('[Supabase] Device login failed', error);
-                // Si ça échoue, on continue en mode local
+                console.warn('[Supabase] Device login failed, continuing in local mode', error);
+                // On continue en mode local
             }
         }
     }
