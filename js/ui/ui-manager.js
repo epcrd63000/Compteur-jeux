@@ -43,12 +43,14 @@ class UIManager {
         // Masquer tous les écrans
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.add('hidden');
+            screen.classList.remove('active');
         });
 
         // Afficher l'écran demandé
         const screen = document.getElementById(`${screenName}-screen`);
         if (screen) {
             screen.classList.remove('hidden');
+            screen.classList.add('active');
             this.currentScreen = screenName;
             console.log('[UIManager] Screen:', screenName);
         }
