@@ -15,19 +15,21 @@
 </head>
 <body>
     <div class="app-container" id="app">
-        <!-- Zone de connexion -->
-        <div id="auth-screen" class="screen auth-screen">
-            <div class="auth-form">
+        <!-- Écran d'accueil (Profils) -->
+        <div id="home-screen" class="screen home-screen">
+            <div class="home-container">
                 <h1>Compteur de Points</h1>
-                <div class="form-group">
-                    <input type="email" id="email-input" placeholder="Email" class="form-input">
+                
+                <div class="profiles-section">
+                    <h2>Vos Profils de Joueurs</h2>
+                    <p class="subtitle">Sélectionnez ou créez un groupe de joueurs (ex: Famille Dubois, David vs Flo)</p>
+                    <div id="profiles-list" class="profiles-list">
+                        <!-- Les profils seront injectés ici -->
+                    </div>
+                    <button id="new-profile-btn" class="btn btn-primary btn-large" style="margin-top: 20px; width: 100%;">
+                        <span>➕</span> Créer un nouveau profil
+                    </button>
                 </div>
-                <div class="form-group">
-                    <input type="password" id="password-input" placeholder="Mot de passe" class="form-input">
-                </div>
-                <button id="login-btn" class="btn btn-primary">Se connecter</button>
-                <button id="signup-btn" class="btn btn-secondary">S'inscrire</button>
-                <div id="auth-error" class="error-message"></div>
             </div>
         </div>
 

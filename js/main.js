@@ -28,18 +28,16 @@ class Application {
             console.log('[App] Initializing Supabase...');
             await supabaseClient.init();
 
-            // 3. Vérifier la session existante
-            const session = await indexedDBManager.getSession();
-            if (session && session.access_token) {
-                console.log('[App] Existing session found');
-                uiManager.showScreen('game');
-                await uiManager.initializeGameScreen();
-            } else {
-                console.log('[App] No session, showing auth screen');
-                uiManager.showScreen('auth');
-            }
+            // 3. Vérifier ou créer la session de l'appareil
+            console.log('[App] Ensuring device auth...');
+            await supabaseClient.ensureDeviceAuth();
 
-            // 4. Configurer les écouteurs de jeu
+            // 4. Afficher l'écran d'accueil
+            console.log('[App] Showing home screen');
+            uiManager.showScreen('home');
+            await uiManager.loadProfiles();
+
+            // 5. Configurer les écouteurs de jeu
             this._setupGameListeners();
 
             // 5. Enregistrer le Service Worker

@@ -137,6 +137,49 @@ class SupabaseClient {
     }
 
     /**
+     * S'assurer que l'appareil est authentifié silencieusement
+     */
+    async ensureDeviceAuth() {
+        if (this.auth) return;
+
+        // Générer un identifiant d'appareil unique si nécessaire
+        let deviceId = localStorage.getItem('device_id');
+        let devicePassword = localStorage.getItem('device_pwd');
+        
+        if (!deviceId) {
+            deviceId = 'device-' + crypto.randomUUID();
+            devicePassword = crypto.randomUUID() + crypto.randomUUID();
+            localStorage.setItem('device_id', deviceId);
+            localStorage.setItem('device_pwd', devicePassword);
+            
+            // Inscription
+            try {
+                const result = await this.signUp(deviceId + '@compteur.local', devicePassword);
+                
+                // Créer le profil utilisateur
+                if (result && result.user) {
+                    await this.insert('users', {
+                        id: result.user.id,
+                        pseudo: `Joueur-${deviceId.substring(7, 11)}`,
+                        email: deviceId + '@compteur.local'
+                    });
+                }
+            } catch (error) {
+                console.error('[Supabase] Device signup failed', error);
+                // Si ça échoue, on continue en mode local
+            }
+        } else {
+            // Connexion
+            try {
+                await this.signIn(deviceId + '@compteur.local', devicePassword);
+            } catch (error) {
+                console.error('[Supabase] Device login failed', error);
+                // Si ça échoue, on continue en mode local
+            }
+        }
+    }
+
+    /**
      * Appel API REST
      */
     async _request(method, path, body = null) {

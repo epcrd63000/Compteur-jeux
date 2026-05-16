@@ -5,7 +5,7 @@
 
 class UIManager {
     constructor() {
-        this.currentScreen = 'auth';
+        this.currentScreen = 'home';
         this.setupEventListeners();
     }
 
@@ -13,9 +13,9 @@ class UIManager {
      * Configurer les écouteurs d'événements
      */
     setupEventListeners() {
-        // Authentification
-        document.getElementById('login-btn').addEventListener('click', () => this.handleLogin());
-        document.getElementById('signup-btn').addEventListener('click', () => this.handleSignup());
+        // Accueil
+        const newProfileBtn = document.getElementById('new-profile-btn');
+        if (newProfileBtn) newProfileBtn.addEventListener('click', () => this.showCreateGroupDialog());
 
         // Jeu
         document.getElementById('logout-btn').addEventListener('click', () => this.handleLogout());
@@ -52,6 +52,44 @@ class UIManager {
             this.currentScreen = screenName;
             console.log('[UIManager] Screen:', screenName);
         }
+    }
+
+    /**
+     * Charger les profils sur l'écran d'accueil
+     */
+    async loadProfiles() {
+        try {
+            const groups = await indexedDBManager.getAllGroups();
+            const profilesList = document.getElementById('profiles-list');
+            if (!profilesList) return;
+
+            if (groups.length === 0) {
+                profilesList.innerHTML = '<p class="empty-state">Aucun profil trouvé. Créez-en un pour commencer !</p>';
+                return;
+            }
+
+            profilesList.innerHTML = groups.map(group => `
+                <div class="profile-card" onclick="uiManager.selectProfile('${group.id}')">
+                    <h3>${group.name}</h3>
+                    <button class="btn btn-secondary">Jouer</button>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('[UIManager] Error loading profiles:', error);
+        }
+    }
+
+    /**
+     * Sélectionner un profil depuis l'accueil
+     */
+    selectProfile(groupId) {
+        // Pré-sélectionner le groupe dans les paramètres
+        const groupSelect = document.getElementById('group-select');
+        if (groupSelect) {
+            groupSelect.value = groupId;
+        }
+        // Afficher l'écran des paramètres pour démarrer la partie
+        this.showSettings();
     }
 
     /**
@@ -288,8 +326,9 @@ class UIManager {
                 await indexedDBManager.addGroupMember(group.id, player.id);
             }
 
-            // Recharger les groupes
+            // Recharger les groupes et profils
             await this.loadGroups();
+            await this.loadProfiles();
 
             // Masquer le dialogue
             this.hideCreateGroupDialog();
