@@ -2,170 +2,588 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Compteur Jeux">
-    <meta name="theme-color" content="#2c3e50">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232c3e50' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' text-anchor='middle' dy='.3em' fill='%23fff'>10k</text></svg>">
-    <title>Compteur de Points Multi-Jeux</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Compteur 10 000</title>
+    <!-- Tailwind CSS pour le style rapide et responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: white;
+            overflow: hidden; /* Empêcher le scroll pour une app native-like */
+            touch-action: manipulation; /* Optimisation tactile */
+        }
+
+        .score-text {
+            font-size: clamp(4rem, 15vw, 8rem);
+            line-height: 1;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); /* Effet néon léger */
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .score-text.bump {
+            transform: scale(1.1);
+            color: #38bdf8; /* Sky 400 */
+        }
+
+        /* Variables CSS pour les couleurs d'état vocal */
+        :root {
+            --mic-idle: #64748b;
+            --mic-listening: #ef4444;
+            --mic-processing: #f59e0b;
+        }
+
+        .mic-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .mic-btn.listening {
+            background-color: var(--mic-listening);
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Layout spécifique au paysage (Immersif) */
+        @media (orientation: landscape) {
+            .landscape-layout {
+                flex-direction: row !important;
+                justify-content: space-around;
+            }
+            .controls-container {
+                flex-direction: column !important;
+                gap: 2rem !important;
+                width: auto !important;
+            }
+            .score-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .score-text {
+                font-size: clamp(6rem, 20vw, 12rem);
+            }
+        }
+
+        /* Toast de notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+    </style>
 </head>
-<body>
-    <div class="app-container" id="app">
-        <!-- Écran d'accueil (Profils) -->
-        <div id="home-screen" class="screen home-screen hidden">
-            <div class="home-container">
-                <h1>Compteur de Points</h1>
-                
-                <div class="profiles-section">
-                    <h2>Vos Profils de Joueurs</h2>
-                    <p class="subtitle">Sélectionnez ou créez un groupe de joueurs (ex: Famille Dubois, David vs Flo)</p>
-                    <div id="profiles-list" class="profiles-list">
-                        <!-- Les profils seront injectés ici -->
-                    </div>
-                    <button id="new-profile-btn" class="btn btn-primary btn-large" style="margin-top: 20px; width: 100%;">
-                        <span>➕</span> Créer un nouveau profil
-                    </button>
-                </div>
+<body class="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-slate-100">
+
+    <!-- Conteneur principal qui s'adapte en portrait/paysage -->
+    <div class="landscape-layout flex flex-col w-full h-full p-6 items-center justify-between max-w-4xl mx-auto">
+        
+        <!-- En-tête -->
+        <div class="w-full text-center pt-4 opacity-50 text-sm tracking-widest uppercase flex justify-between px-4 absolute top-0 left-0 right-0">
+            <span>Objectif: 10 000</span>
+            <span id="sync-status" class="text-yellow-500"><i class="fas fa-sync-alt fa-spin"></i> Déconnecté</span>
+        </div>
+
+        <!-- Section Score -->
+        <div class="score-container flex-1 flex flex-col justify-center items-center w-full">
+            <h2 class="text-slate-400 font-semibold mb-2 uppercase tracking-wide">Score Actuel</h2>
+            <div id="score-display" class="score-text font-extrabold text-white select-none cursor-pointer" onclick="toggleEditMode()">0</div>
+            
+            <!-- Input caché pour éditer le score manuellement -->
+            <input type="number" id="score-input" class="hidden text-center bg-slate-800 text-white text-4xl rounded-lg p-2 mt-4 border-2 border-slate-600 focus:outline-none focus:border-sky-500 w-48" onblur="saveManualScore()" onkeypress="handleEnter(event)">
+            
+            <div class="mt-4 h-4 w-full max-w-xs bg-slate-800 rounded-full overflow-hidden">
+                <div id="progress-bar" class="h-full bg-gradient-to-r from-sky-500 to-indigo-500 transition-all duration-500" style="width: 0%"></div>
             </div>
         </div>
 
-        <!-- Zone principale du jeu -->
-        <div id="game-screen" class="screen game-screen hidden">
-            <!-- Barre de miniatures (Portrait) -->
-            <div class="miniatures-bar" id="miniatures-bar">
-                <div class="miniature-controls">
-                    <button class="icon-btn" id="settings-btn" title="Paramètres">⚙️</button>
-                </div>
-                <div class="miniatures-container" id="miniatures-container"></div>
-            </div>
+        <!-- Section Contrôles (Boutons et Micro) -->
+        <div class="controls-container flex flex-row w-full justify-center gap-6 pb-8 items-center mt-auto z-10">
+            
+            <!-- Bouton +50 -->
+            <button onclick="addPoints(50)" class="active:scale-95 transition-transform bg-slate-800 hover:bg-slate-700 text-white font-bold h-20 w-20 rounded-2xl flex flex-col items-center justify-center border-b-4 border-slate-900 shadow-lg">
+                <span class="text-2xl">+50</span>
+            </button>
 
-            <!-- Contenu principal -->
-            <div class="main-content">
-                <!-- Zone Tableau de bord (Paysage) -->
-                <div class="dashboard-left" id="dashboard-left">
-                    <div class="players-list" id="players-list"></div>
-                </div>
+            <!-- Bouton Micro (Central et plus gros) -->
+            <button id="mic-btn" onclick="toggleMicrophone()" class="mic-btn bg-slate-700 hover:bg-slate-600 text-white h-24 w-24 rounded-full flex items-center justify-center text-3xl shadow-xl relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <i id="mic-icon" class="fas fa-microphone"></i>
+            </button>
 
-                <!-- Zone joueur actif -->
-                <div class="active-player-zone" id="active-player-zone">
-                    <div class="active-player-card">
-                        <div class="player-name" id="current-player-name">Joueur</div>
-                        <div class="score-display" id="score-display">0</div>
-                        <div class="round-info">
-                            <span id="round-number">Tour 1</span>
-                        </div>
-                    </div>
+            <!-- Bouton +100 -->
+            <button onclick="addPoints(100)" class="active:scale-95 transition-transform bg-sky-600 hover:bg-sky-500 text-white font-bold h-20 w-20 rounded-2xl flex flex-col items-center justify-center border-b-4 border-sky-800 shadow-lg">
+                <span class="text-2xl">+100</span>
+            </button>
 
-                    <!-- Zone de contrôles du module de jeu -->
-                    <div class="game-controls" id="game-controls"></div>
-
-                    <!-- Historique des coups -->
-                    <div class="moves-history" id="moves-history">
-                        <div class="history-title">Historique</div>
-                        <div class="history-list" id="history-list"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Barre d'outils inférieure -->
-            <div class="footer-controls">
-                <button class="btn btn-small" id="undo-btn">↶ Annuler</button>
-                <button class="btn btn-small" id="edit-score-btn">✎ Éditer</button>
-                <button class="btn btn-danger" id="logout-btn">Déconnexion</button>
-            </div>
+        </div>
+        
+        <!-- Feedback vocal -->
+        <div id="speech-feedback" class="absolute bottom-32 text-center w-full text-slate-400 h-6 italic pointer-events-none">
+            <!-- Le texte reconnu s'affichera ici -->
         </div>
 
-        <!-- Zone de configuration -->
-        <div id="settings-screen" class="screen settings-screen hidden">
-            <div class="settings-panel">
-                <h2>Paramètres</h2>
-                
-                <div class="settings-section">
-                    <h3>Partie</h3>
-                    <div class="form-group">
-                        <label>Module de jeu:</label>
-                        <select id="game-module-select" class="form-input">
-                            <option value="10000">Le 10 000</option>
-                            <option value="scrabble">Scrabble (à venir)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Groupe:</label>
-                        <select id="group-select" class="form-input"></select>
-                    </div>
-                    <button id="create-group-btn" class="btn btn-secondary">Créer groupe</button>
-                </div>
-
-                <div class="settings-section">
-                    <h3>Nouveaux joueurs</h3>
-                    <div class="players-manager" id="players-manager"></div>
-                    <button id="add-player-btn" class="btn btn-secondary">+ Ajouter joueur</button>
-                </div>
-
-                <button id="start-game-btn" class="btn btn-primary">Démarrer partie</button>
-                <button id="settings-close-btn" class="btn btn-secondary">Fermer</button>
-            </div>
-        </div>
-
-        <!-- Dialogue d'édition de score -->
-        <dialog id="edit-score-dialog" class="score-edit-dialog">
-            <div class="dialog-content">
-                <h3>Éditer le score</h3>
-                <input type="number" id="score-input" class="form-input" min="0">
-                <div class="dialog-buttons">
-                    <button id="score-confirm-btn" class="btn btn-primary">Confirmer</button>
-                    <button id="score-cancel-btn" class="btn btn-secondary">Annuler</button>
-                </div>
-            </div>
-        </dialog>
-
-        <!-- Dialogue de création de groupe -->
-        <dialog id="create-group-dialog" class="create-group-dialog">
-            <div class="dialog-content">
-                <h3>Créer un groupe</h3>
-                <input type="text" id="group-name-input" placeholder="Nom du groupe" class="form-input">
-                <div class="dialog-buttons">
-                    <button id="group-confirm-btn" class="btn btn-primary">Créer</button>
-                    <button id="group-cancel-btn" class="btn btn-secondary">Annuler</button>
-                </div>
-            </div>
-        </dialog>
-
-        <!-- Canvas pour les confettis (victoire) -->
-        <canvas id="confetti-canvas"></canvas>
     </div>
 
-    <!-- Toastify pour les notifications -->
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Notification Toast -->
+    <div id="toast">Message</div>
 
-    <!-- Scripts -->
-    <script src="js/vendor/idb.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/db/indexeddb.js"></script>
-    <script src="js/api/supabase.js"></script>
-    <script src="js/nlp/french-number-parser.js"></script>
-    <script src="js/nlp/speech-recognition.js"></script>
-    <script src="js/gestures/swipe-detector.js"></script>
-    <script src="js/modules/engine.js"></script>
-    <script src="js/modules/game-10000.js"></script>
-    <script src="js/ui/responsive.js"></script>
-    <script src="js/sync/realtime-sync.js"></script>
-    <script src="js/ui/ui-manager.js"></script>
-    <script src="js/main.js"></script>
+    <!-- Interface de Configuration Initiale Supabase (Modale) -->
+    <div id="config-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 hidden">
+        <div class="bg-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl border border-slate-700">
+            <h2 class="text-2xl font-bold mb-4 text-white">Configuration Supabase</h2>
+            <p class="text-slate-400 mb-6 text-sm">Pour utiliser la sauvegarde en ligne, entrez vos identifiants Supabase. Sinon, jouez en local.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">URL Supabase</label>
+                    <input type="text" id="supa-url-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sky-500" placeholder="https://xyzcompany.supabase.co">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Clé Anonyme (anon key)</label>
+                    <input type="password" id="supa-key-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sky-500" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+            </div>
 
-    <!-- Enregistrement du Service Worker -->
+            <div class="mt-8 flex gap-4">
+                <button onclick="initSupabaseFromModal()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                    Connecter
+                </button>
+                <button onclick="closeConfigModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                    Mode Local
+                </button>
+            </div>
+            
+            <div class="mt-4 text-xs text-slate-500 text-center">
+                Assurez-vous d'avoir une table <code class="bg-slate-900 px-1 rounded">scores</code> avec une colonne <code class="bg-slate-900 px-1 rounded">score</code> (type int4) et <code class="bg-slate-900 px-1 rounded">id</code> (type int4, primary key). L'app utilisera l'id 1.
+            </div>
+        </div>
+    </div>
+
+
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => {
-                    console.warn('Service Worker registration failed:', err);
-                });
-            });
+        // Configuration
+        const MAX_SCORE = 10000;
+        let currentScore = 0;
+        const RECORD_ID = 1; // ID fixe dans la BDD pour simplifier
+        
+        // Supabase client instance
+        let supabase = null;
+        let isOnline = false;
+
+        // Éléments du DOM
+        const scoreDisplay = document.getElementById('score-display');
+        const scoreInput = document.getElementById('score-input');
+        const progressBar = document.getElementById('progress-bar');
+        const syncStatus = document.getElementById('sync-status');
+        const micBtn = document.getElementById('mic-btn');
+        const micIcon = document.getElementById('mic-icon');
+        const speechFeedback = document.getElementById('speech-feedback');
+        const configModal = document.getElementById('config-modal');
+
+        
+        // Vérifier si la config existe dans le localStorage
+        function checkSupabaseConfig() {
+            const savedUrl = localStorage.getItem('supabase_url');
+            const savedKey = localStorage.getItem('supabase_key');
+
+            if (savedUrl && savedKey) {
+                initSupabase(savedUrl, savedKey);
+            } else {
+                // Pas de config, on utilise le localStorage par défaut et on propose la modale
+                loadLocalScore();
+                // Afficher la modale de config (décommenter pour forcer la config)
+                configModal.classList.remove('hidden');
+            }
         }
+
+        function initSupabaseFromModal() {
+            const url = document.getElementById('supa-url-input').value.trim();
+            const key = document.getElementById('supa-key-input').value.trim();
+
+            if (url && key) {
+                localStorage.setItem('supabase_url', url);
+                localStorage.setItem('supabase_key', key);
+                initSupabase(url, key);
+                configModal.classList.add('hidden');
+            } else {
+                showToast("Veuillez remplir les deux champs.");
+            }
+        }
+
+        function closeConfigModal() {
+            configModal.classList.add('hidden');
+            showToast("Mode local activé. Les données ne seront pas synchronisées.", "warning");
+            updateSyncUI(false);
+        }
+
+        function initSupabase(url, key) {
+            try {
+                // Créer le client Supabase correctement
+                const { createClient } = window.supabase;
+                supabase = createClient(url, key);
+                isOnline = true;
+                updateSyncUI(true);
+                fetchScoreFromSupabase();
+                showToast("Connecté à Supabase !");
+            } catch (error) {
+                console.error("Erreur d'initialisation Supabase:", error);
+                isOnline = false;
+                updateSyncUI(false);
+                loadLocalScore();
+                showToast("Erreur de connexion. Mode local activé.", "error");
+            }
+        }
+
+        function updateSyncUI(online) {
+            if (online) {
+                syncStatus.innerHTML = '<i class="fas fa-cloud text-green-500"></i> En ligne';
+                syncStatus.classList.replace('text-yellow-500', 'text-green-500');
+                syncStatus.classList.replace('text-red-500', 'text-green-500');
+            } else {
+                syncStatus.innerHTML = '<i class="fas fa-cloud-offline text-red-500"></i> Local';
+                syncStatus.classList.replace('text-yellow-500', 'text-red-500');
+                syncStatus.classList.replace('text-green-500', 'text-red-500');
+            }
+        }
+
+        async function fetchScoreFromSupabase() {
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase
+                    .from('scores')
+                    .select('score')
+                    .eq('id', RECORD_ID)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') { // Ignorer l'erreur "pas de ligne trouvée"
+                    throw error;
+                }
+
+                if (data) {
+                    currentScore = data.score;
+                    updateUI();
+                } else {
+                    // Créer la ligne si elle n'existe pas
+                    await supabase.from('scores').insert([{ id: RECORD_ID, score: currentScore }]);
+                }
+            } catch (error) {
+                console.error("Erreur fetch:", error);
+                showToast("Erreur de récupération du score.", "error");
+            }
+        }
+
+        // Fonction pour debounce la sauvegarde sur Supabase (éviter de spammer l'API)
+        let saveTimeout;
+        async function saveScoreToSupabase() {
+            if (!supabase) return;
+            
+            clearTimeout(saveTimeout);
+            syncStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin text-sky-500"></i> Sync...';
+            
+            saveTimeout = setTimeout(async () => {
+                try {
+                    const { error } = await supabase
+                        .from('scores')
+                        .upsert({ id: RECORD_ID, score: currentScore });
+
+                    if (error) throw error;
+                    updateSyncUI(true);
+                } catch (error) {
+                    console.error("Erreur sauvegarde:", error);
+                    updateSyncUI(false);
+                }
+            }, 1000); // Attendre 1s après la dernière modif avant de sauvegarder
+        }
+
+        function loadLocalScore() {
+            const saved = localStorage.getItem('local_score');
+            if (saved) {
+                currentScore = parseInt(saved, 10);
+                updateUI();
+            }
+        }
+
+        function saveLocalScore() {
+            localStorage.setItem('local_score', currentScore);
+        }
+
+        
+        function updateUI() {
+            // Mettre à jour le texte avec animation
+            scoreDisplay.textContent = currentScore.toLocaleString('fr-FR');
+            
+            // Animation Bump
+            scoreDisplay.classList.remove('bump');
+            void scoreDisplay.offsetWidth; // Trigger reflow
+            scoreDisplay.classList.add('bump');
+            
+            setTimeout(() => {
+                scoreDisplay.classList.remove('bump');
+            }, 300);
+
+            // Mettre à jour la barre de progression
+            const percentage = Math.min((currentScore / MAX_SCORE) * 100, 100);
+            progressBar.style.width = `${percentage}%`;
+
+            // Si on atteint l'objectif
+            if (currentScore >= MAX_SCORE) {
+                progressBar.classList.replace('from-sky-500', 'from-green-500');
+                progressBar.classList.replace('to-indigo-500', 'to-emerald-500');
+                scoreDisplay.style.color = '#10b981'; // Emerald 500
+            } else {
+                progressBar.classList.replace('from-green-500', 'from-sky-500');
+                progressBar.classList.replace('to-emerald-500', 'to-indigo-500');
+                scoreDisplay.style.color = 'white';
+            }
+        }
+
+        function addPoints(points) {
+            currentScore += points;
+            
+            // Sécurité pour ne pas aller en dessous de 0 si on ajoute des points négatifs
+            if(currentScore < 0) currentScore = 0;
+
+            updateUI();
+            
+            // Sauvegarder
+            saveLocalScore();
+            if (isOnline) saveScoreToSupabase();
+            
+            // Feedback léger
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        // --- Édition manuelle du score ---
+        function toggleEditMode() {
+            scoreDisplay.classList.add('hidden');
+            scoreInput.classList.remove('hidden');
+            scoreInput.value = currentScore;
+            scoreInput.focus();
+        }
+
+        function saveManualScore() {
+            const val = parseInt(scoreInput.value, 10);
+            if (!isNaN(val)) {
+                currentScore = val;
+                updateUI();
+                saveLocalScore();
+                if (isOnline) saveScoreToSupabase();
+            }
+            scoreInput.classList.add('hidden');
+            scoreDisplay.classList.remove('hidden');
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                scoreInput.blur();
+            }
+        }
+
+        
+        let recognition = null;
+        let isListening = false;
+
+        // Initialisation de l'API vocale
+        function initSpeechRecognition() {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!window.SpeechRecognition) {
+                console.warn("L'API de reconnaissance vocale n'est pas supportée sur ce navigateur.");
+                micBtn.style.opacity = "0.5";
+                micBtn.onclick = () => showToast("Micro non supporté sur ce navigateur.", "error");
+                return;
+            }
+
+            recognition = new window.SpeechRecognition();
+            // Configuration
+            recognition.lang = 'fr-FR'; // Langue française
+            recognition.continuous = false; // Ne pas écouter en continu pour économiser la batterie, on doit rappuyer ou gérer la boucle
+            recognition.interimResults = false; // On ne veut que le résultat final
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                micIcon.classList.replace('fa-microphone', 'fa-microphone-lines');
+                speechFeedback.textContent = "Je vous écoute...";
+            };
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript.toLowerCase();
+                console.log("Texte reconnu:", speechResult);
+                processSpeechCommand(speechResult);
+            };
+
+            recognition.onspeechend = () => {
+                recognition.stop();
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('listening');
+                micIcon.classList.replace('fa-microphone-lines', 'fa-microphone');
+                setTimeout(() => {
+                    if (speechFeedback.textContent === "Je vous écoute...") {
+                        speechFeedback.textContent = "";
+                    }
+                }, 2000);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Erreur de reconnaissance vocale :", event.error);
+                speechFeedback.textContent = "Erreur: " + event.error;
+                isListening = false;
+                micBtn.classList.remove('listening');
+                micIcon.classList.replace('fa-microphone-lines', 'fa-microphone');
+                
+                if (event.error === 'not-allowed') {
+                    showToast("L'accès au micro a été refusé.", "error");
+                }
+            };
+        }
+
+        function toggleMicrophone() {
+            if (!recognition) return;
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Erreur au démarrage du micro:", e);
+                }
+            }
+        }
+
+        // Logique de traitement du langage naturel simplifié
+        function processSpeechCommand(text) {
+            speechFeedback.textContent = `"${text}"`;
+            let pointsToAdd = 0;
+
+            // Dictionnaire simple pour les nombres en lettres courants
+            const textToNumberMap = {
+                "dix": 10, "vingt": 20, "trente": 30, "quarante": 40, "cinquante": 50,
+                "soixante": 60, "soixante-dix": 70, "quatre-vingt": 80, "quatre-vingts": 80,
+                "quatre-vingt-dix": 90, "cent": 100, "deux-cents": 200, "deux cents": 200,
+                "cinq-cents": 500, "cinq cents": 500, "mille": 1000
+            };
+
+            // 1. Chercher des nombres (digits) dans le texte
+            // Ex: "ajoute 50", "plus 100", "50", "100"
+            const numbersInText = text.match(/\d+/g);
+            if (numbersInText && numbersInText.length > 0) {
+                // On prend le premier nombre trouvé
+                pointsToAdd = parseInt(numbersInText[0], 10);
+            } 
+            // 2. Si pas de chiffres, on cherche des mots correspondant à des nombres
+            else {
+                // Nettoyage de base (enlever les 'plus', 'ajoute', etc. pour isoler le nombre)
+                let cleanText = text.replace(/(ajoute|plus|mets|ajouter|score|points)/gi, '').trim();
+                
+                // Vérifier si le texte nettoyé est dans notre map
+                if (textToNumberMap[cleanText]) {
+                    pointsToAdd = textToNumberMap[cleanText];
+                } else {
+                    // Essayer de trouver un mot clé dans la phrase originale
+                    for (const [word, value] of Object.entries(textToNumberMap)) {
+                        if (text.includes(word)) {
+                            pointsToAdd = value;
+                            break; // On prend le premier trouvé
+                        }
+                    }
+                }
+            }
+
+            if (pointsToAdd > 0) {
+                speechFeedback.textContent = `+${pointsToAdd} points ajoutés !`;
+                speechFeedback.classList.replace('text-slate-400', 'text-green-400');
+                
+                addPoints(pointsToAdd);
+
+                setTimeout(() => {
+                    speechFeedback.classList.replace('text-green-400', 'text-slate-400');
+                    speechFeedback.textContent = "";
+                }, 2000);
+            } else {
+                speechFeedback.textContent = "Commande non comprise.";
+                speechFeedback.classList.replace('text-slate-400', 'text-yellow-400');
+                setTimeout(() => {
+                    speechFeedback.classList.replace('text-yellow-400', 'text-slate-400');
+                    speechFeedback.textContent = "";
+                }, 2000);
+            }
+        }
+
+
+        function showToast(message, type = "info") {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            
+            if (type === "error") {
+                toast.style.backgroundColor = "#ef4444"; // Red
+            } else if (type === "warning") {
+                toast.style.backgroundColor = "#f59e0b"; // Amber
+            } else {
+                toast.style.backgroundColor = "#333";
+            }
+
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        // Initialisation au chargement de la page
+        window.onload = () => {
+            initSpeechRecognition();
+            checkSupabaseConfig(); // Vérifie Supabase, charge le score local/distant
+            updateUI(); // Affiche 0 initialement
+
+            // Fonctionnalité de debug : double clic sur le statut en haut à gauche pour reset la config
+            syncStatus.parentElement.ondblclick = () => {
+                if(confirm("Voulez-vous réinitialiser la configuration Supabase ?")) {
+                    localStorage.removeItem('supabase_url');
+                    localStorage.removeItem('supabase_key');
+                    location.reload();
+                }
+            };
+        };
+
     </script>
 </body>
 </html>

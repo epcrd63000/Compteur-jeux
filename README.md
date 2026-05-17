@@ -1,249 +1,175 @@
-# 📊 Compteur de Points Multi-Jeux (V4)
+# Compteur 10 000 🎮
 
-Application Progressive Web (PWA) pour compter les points de jeux de société en multijoueur temps réel.
+Une app web progressive pour compter jusqu'à 10 000 avec support vocal, synchronisation Supabase et stockage local.
 
-## ✨ Caractéristiques
+**Live Demo:** [https://epcrd63000.github.io/Compteur-jeux/](https://epcrd63000.github.io/Compteur-jeux/)
 
-### Architecture
-- **Backend**: Supabase (PostgreSQL) avec authentification JWT
-- **Frontend**: PWA 100% client-side hébergée sur GitHub Pages
-- **Offline-First**: IndexedDB + Service Worker + Background Sync API
-- **Synchronisation Temps Réel**: WebSockets Supabase Realtime
+## ✨ Fonctionnalités
 
-### Fonctionnalités
-- ✅ Multi-joueurs synchronisé en temps réel
-- ✅ Fonctionne entièrement hors-ligne (Offline-First)
-- ✅ Interface adaptive (Portrait/Paysage)
-- ✅ Reconnaissance vocale française (Web Speech API)
-- ✅ Détection de gestes (swipe pour passer le tour)
-- ✅ Module "Le 10 000" complet
-- ✅ Architecture modulaire pour futur Scrabble
-- ✅ Synchronisation en arrière-plan (Background Sync)
+- 🎯 **Compteur intuitif** - Deux boutons (+50, +100) et édition directe du score
+- 🎤 **Reconnaissance vocale** - Dictez vos points en français
+- ☁️ **Synchronisation Supabase** - Sauvegarde et partage du score
+- 💾 **Mode offline** - Stockage local localStorage
+- 📱 **Responsive Design** - Optimisé pour mobile et desktop
+- 🎨 **Design moderne** - Dark mode avec Tailwind CSS et animations fluides
+- 📊 **Barre de progression** - Suivez votre avancement vers 10 000
 
-## 🚀 Déploiement
+## 🚀 Déploiement sur GitHub Pages
 
-### 1. Configuration Supabase
+### 1. **Configuration initiale (si pas encore fait)**
 
 ```bash
-# Créer un compte sur https://supabase.com
-# Créer un nouveau projet avec la région la plus proche
+# Clone le repo
+git clone https://github.com/epcrd63000/Compteur-jeux.git
+cd Compteur-jeux
 
-# Utiliser les références:
-# Project URL: https://zfsmszjrybpqnqbvkaeb.supabase.co
-# API Key: sb_publishable_iekT5I8JuWdxT34ereMb_Q_QY2vx9pZ
+# Vérifiez qu'on est sur la branche main
+git branch -a
 ```
 
-### 2. Initialiser le schéma PostgreSQL
+### 2. **Préparer le déploiement**
+
+L'app est déjà prête pour GitHub Pages. Le fichier `index.html` à la racine sera automatiquement servi.
+
+### 3. **Configurer GitHub Pages**
+
+1. Allez sur [https://github.com/epcrd63000/Compteur-jeux/settings](https://github.com/epcrd63000/Compteur-jeux/settings)
+2. Naviguer dans **Pages** (colonne de gauche)
+3. Sous **Source**, sélectionnez:
+   - **Branch:** `main`
+   - **Folder:** `/ (root)`
+4. Cliquez **Save**
+
+### 4. **Pousser vos changements**
 
 ```bash
-# Dans la console SQL Supabase:
-# 1. Copiez le contenu de database/schema.sql
-# 2. Exécutez dans l'éditeur SQL de Supabase
-# 3. Vérifiez que les tables sont créées
-
-# Ou via CLI:
-supabase init
-supabase link --project-ref zfsmszjrybpqnqbvkaeb
-supabase db push database/migrations
-```
-
-### 3. Configurer l'authentification Supabase
-
-```
-1. Aller à Authentication > Users
-2. Activer "Email & Password" sous Providers
-3. Configurer les URLs de redirect (si hébergé sur GitHub Pages)
-```
-
-### 4. Déployer sur GitHub Pages
-
-```bash
-# 1. Créer un fork ou un nouveau repo GitHub
-git init
+# Stage et commit
 git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/Compteur-jeux
-git push -u origin main
+git commit -m "Initial app setup for GitHub Pages"
 
-# 2. Aller à Settings > Pages
-# 3. Sélectionner "main" comme branche source
-# 4. Le site est accessible à: https://YOUR_USERNAME.github.io/Compteur-jeux/
-
-# 5. Mettre à jour manifest.json et index.html avec le bon chemin
-# Remplacer "/Compteur-jeux/" par votre chemin réel
+# Push vers GitHub
+git push origin main
 ```
 
-## 📱 Utilisation
+L'app sera disponible à : `https://epcrd63000.github.io/Compteur-jeux/`
 
-### Installation sur mobile
+## ⚙️ Configuration Supabase (Optionnel)
 
-#### iOS
-```
-1. Ouvrir dans Safari
-2. Appuyer sur "Partager"
-3. Sélectionner "Sur l'écran d'accueil"
-4. L'app apparaîtra comme une app native
-```
+Pour activer la synchronisation du score en cloud :
 
-#### Android
-```
-1. Ouvrir dans Chrome
-2. Menu > "Installer l'app"
-3. Confirmer l'installation
-```
+### 1. **Créer un projet Supabase**
+- Aller sur [supabase.com](https://supabase.com)
+- Créer un nouveau projet
 
-### Utilisation de base
+### 2. **Créer la table**
+Dans l'éditeur SQL de Supabase, exécutez :
 
-1. **S'inscrire/Se connecter**
-   - Créer un compte avec email/mot de passe
+```sql
+CREATE TABLE scores (
+  id INT PRIMARY KEY,
+  score INT4 NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT now(),
+  updated_at TIMESTAMP DEFAULT now()
+);
 
-2. **Créer un groupe**
-   - Ajouter les joueurs avec leurs noms et couleurs
-   - Créer le groupe
-
-3. **Démarrer une partie**
-   - Sélectionner le module (Le 10 000)
-   - Démarrer la partie
-
-4. **Saisir les scores**
-   - Boutons rapides (+100, +150, +200, +300)
-   - Reconnaissance vocale (🎤)
-   - Clavier numérique (✎ Éditer)
-   - Swipe vers la gauche pour passer avec 0
-
-## 🏗️ Architecture Technique
-
-### Structure des fichiers
-
-```
-├── index.html                 # Page HTML principale
-├── manifest.json             # Configuration PWA
-├── sw.js                     # Service Worker
-├── css/
-│   └── styles.css            # Styles responsive
-├── js/
-│   ├── config.js             # Configuration globale
-│   ├── vendor/
-│   │   └── idb.js            # Wrapper IndexedDB
-│   ├── db/
-│   │   └── indexeddb.js      # Gestionnaire IndexedDB
-│   ├── api/
-│   │   └── supabase.js       # Client Supabase
-│   ├── nlp/
-│   │   ├── french-number-parser.js    # Parser nombres français
-│   │   └── speech-recognition.js      # Web Speech API
-│   ├── gestures/
-│   │   └── swipe-detector.js # Détecteur de swipes
-│   ├── modules/
-│   │   ├── engine.js         # Moteur principal
-│   │   └── game-10000.js     # Module Le 10 000
-│   ├── ui/
-│   │   ├── responsive.js     # Gestion responsive
-│   │   └── ui-manager.js     # Gestionnaire UI
-│   ├── sync/
-│   │   └── realtime-sync.js  # Synchronisation Realtime
-│   └── main.js              # Point d'entrée
-└── database/
-    └── schema.sql            # Schéma PostgreSQL
+-- Insérer un record par défaut
+INSERT INTO scores (id, score) VALUES (1, 0);
 ```
 
-### Flux de données
+### 3. **Configurer les politiques RLS (Row Level Security)**
+Pour permettre l'accès anonyme (optionnel mais recommandé) :
 
-```
-┌─────────────────┐
-│   Interface     │
-│   (HTML/CSS)    │
-└────────┬────────┘
-         │
-    ┌────▼────────────────────────────┐
-    │   UIManager                      │
-    │   - Gestion des écrans           │
-    │   - Événements utilisateur       │
-    └────┬─────────────────────────────┘
-         │
-    ┌────▼──────────────────────┐
-    │   GameEngine              │
-    │   - État du jeu           │
-    │   - Logique des tours      │
-    │   - Calcul des scores      │
-    └────┬─────────────────────┬─┘
-         │                     │
-    ┌────▼─────────┐   ┌──────▼───────────┐
-    │  IndexedDB   │   │  Supabase        │
-    │  (Offline)   │   │  (Online)        │
-    └──────────────┘   └──────────────────┘
-         │                     │
-    ┌────▼──────────────────────▼──┐
-    │   RealtimeSync               │
-    │   - WebSockets               │
-    │   - Background Sync          │
-    └──────────────────────────────┘
+```sql
+ALTER TABLE scores ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Autoriser la lecture publique"
+  ON scores FOR SELECT
+  USING (true);
+
+CREATE POLICY "Autoriser la modification publique"
+  ON scores FOR UPDATE
+  USING (true);
 ```
 
-## 🔐 Sécurité
+### 4. **Récupérer les identifiants**
+- URL Supabase : Settings → API → Project URL
+- Clé anonyme : Settings → API → `anon` public key
 
-### Row Level Security (RLS)
-- Les utilisateurs ne peuvent voir que leurs propres groupes
-- Les scores ne peuvent être modifiés que par les membres du groupe
-- Les parties sont isolées par groupe
+### 5. **Configurer dans l'app**
+Au premier lancement, une modale s'affiche. Remplissez :
+- **URL Supabase** : `https://xyzcompany.supabase.co`
+- **Clé Anonyme** : votre clé publique
 
-### Authentification
-- JWT tokens gérés par Supabase Auth
-- Sessions stockées de manière sécurisée dans IndexedDB
-- Déconnexion automatique après révocation du token
+Les identifiants seront stockés dans `localStorage` de votre navigateur.
 
-## 🚫 Limitations actuelles
+## 🎯 Utilisation
 
-- ❌ Scrabble non encore implémenté
-- ❌ WebSockets Realtime simulés (API simulée)
-- ❌ Sync offline en arrière-plan limité (Background Sync API non complètement supportée sur tous les navigateurs)
+### Ajouter des points
+- Cliquez **+50** ou **+100**
+- Ou dictez un nombre au micro
 
-## 🔧 Développement local
+### Éditer le score
+- Cliquez directement sur le nombre pour éditer manuellement
 
-### Serveur local
+### Réinitialiser la config Supabase
+- Double-cliquez sur l'indicateur de statut (en haut à droite)
+
+## 🛠️ Développement local
 
 ```bash
-# Utiliser Python
+# Simplement ouvrez le fichier
+open index.html
+
+# Ou servez avec un serveur local
 python -m http.server 8000
-
-# Ou utiliser Node.js
-npx http-server
-
-# Ou utiliser VS Code Live Server
+# Puis allez à http://localhost:8000
 ```
 
-### Debug
+## 📋 Prérequis
 
-```javascript
-// Activer le logging
-CONFIG.DEBUG = true;
+- Navigateur moderne avec support :
+  - Web Speech API (pour le micro)
+  - localStorage
+  - Supabase JS v2 (CDN)
 
-// Vider IndexedDB
-await indexedDBManager.clear();
+## 📱 Navigateurs supportés
 
-// Vider la file de sync
-await indexedDBManager.clearSyncQueue();
+| Navigateur | Support |
+|-----------|---------|
+| Chrome/Edge | ✅ Complet |
+| Firefox | ✅ Complet |
+| Safari | ✅ (iOS 14.5+) |
+| Opera | ✅ Complet |
+
+## 📝 Structure des fichiers
+
+```
+Compteur-jeux/
+├── index.html          # App principale (tout-en-un)
+├── README.md          # Documentation
+└── .git/              # Repo Git
 ```
 
-## 📝 TODO
+## 🔧 Troubleshooting
 
-- [ ] Implémenter le module Scrabble
-- [ ] Ajouter WebSockets Realtime complets
-- [ ] Améliorer le support Background Sync
-- [ ] Ajouter statistiques et historique
-- [ ] Thème sombre complet
-- [ ] Internationalisations (i18n)
-- [ ] Tests unitaires et E2E
-- [ ] Documentation API complète
+### "Micro non supporté"
+- Utilisez un navigateur moderne (Chrome, Firefox, Safari)
+- La Web Speech API n'est pas supportée sur tous les appareils
+
+### "Erreur de connexion Supabase"
+- Vérifiez que l'URL et la clé sont correctes
+- Assurez-vous que la table `scores` existe
+- Vérifiez les Row Level Security policies
+
+### Les données ne se synchronisent pas
+- Vérifiez votre connexion internet
+- Vérifiez le statut à droite (doit afficher "En ligne")
+- Ouvrez la console du navigateur (F12) pour les erreurs
 
 ## 📄 Licence
 
 MIT - Libre d'utilisation
 
-## 👥 Auteur
+## 👤 Auteur
 
-Développé avec ❤️ pour les amateurs de jeux de société
-
----
-
-**Note**: Cette application est une démonstration technique d'une architecture PWA moderne avec offline-first et synchronisation temps réel.
+[epcrd63000](https://github.com/epcrd63000)
