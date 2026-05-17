@@ -1,57 +1,50 @@
-# Compteur 10 000 🎮
+# Compteur de Points - Multi-Jeux 🎮
 
-Une app web progressive pour compter jusqu'à 10 000 avec support vocal, synchronisation Supabase et stockage local.
+Application web progressive pour le comptage multi-joueurs temps réel, avec support pour "Le 10 000" et architecture modulaire pour d'autres jeux.
 
 **Live Demo:** [https://epcrd63000.github.io/Compteur-jeux/](https://epcrd63000.github.io/Compteur-jeux/)
 
-## ✨ Fonctionnalités
+## ✨ Fonctionnalités principales
 
-- 🎯 **Compteur intuitif** - Deux boutons (+50, +100) et édition directe du score
-- 🎤 **Reconnaissance vocale** - Dictez vos points en français
-- ☁️ **Synchronisation Supabase** - Sauvegarde et partage du score
-- 💾 **Mode offline** - Stockage local localStorage
-- 📱 **Responsive Design** - Optimisé pour mobile et desktop
-- 🎨 **Design moderne** - Dark mode avec Tailwind CSS et animations fluides
-- 📊 **Barre de progression** - Suivez votre avancement vers 10 000
+### Multi-Joueurs & Groupes 👥
+- ✅ **Créer ou rejoindre des groupes** - Code d'invitation unique
+- ✅ **Gestion multi-joueurs** - Jusqu'à 10 joueurs par partie
+- ✅ **Pseudo et couleurs personnalisés** - Support UTF-8 (Hébreu, accents, etc.)
+- ✅ **Gestion automatique des tours** - Passage au joueur suivant après scoring
+
+### Gameplay 🎲
+- ✅ **Boutons rapides** - +100, +150, +200, +300 points
+- ✅ **Reconnaissance vocale** - Dictez les points en français ("cent cinquante")
+- ✅ **Édition flexible** - Undo, modification manuelle des scores
+- ✅ **Historique détaillé** - Trace de tous les scores par tour
+- ✅ **Détection de victoire** - Animation automatique à 10 000 points
+
+### Technologie 🔧
+- ✅ **Mode offline-first** - Fonctionne sans Internet (localStorage)
+- ✅ **Temps réel** - Supabase Realtime pour synchronisation multi-appareils
+- ✅ **Responsive 100% Mobile First** - Portrait et Paysage
+- ✅ **Design moderne** - Tailwind CSS + animations fluides
+- ✅ **Architecture modulaire** - Moteur extensible pour nouveaux jeux
 
 ## 🚀 Déploiement sur GitHub Pages
 
-### 1. **Configuration initiale (si pas encore fait)**
+### 1. Vérifier le statut
 
 ```bash
-# Clone le repo
-git clone https://github.com/epcrd63000/Compteur-jeux.git
-cd Compteur-jeux
-
-# Vérifiez qu'on est sur la branche main
-git branch -a
+git status
 ```
 
-### 2. **Préparer le déploiement**
-
-L'app est déjà prête pour GitHub Pages. Le fichier `index.html` à la racine sera automatiquement servi.
-
-### 3. **Configurer GitHub Pages**
-
-1. Allez sur [https://github.com/epcrd63000/Compteur-jeux/settings](https://github.com/epcrd63000/Compteur-jeux/settings)
-2. Naviguer dans **Pages** (colonne de gauche)
-3. Sous **Source**, sélectionnez:
-   - **Branch:** `main`
-   - **Folder:** `/ (root)`
-4. Cliquez **Save**
-
-### 4. **Pousser vos changements**
+### 2. Pousser les changements
 
 ```bash
-# Stage et commit
 git add .
-git commit -m "Initial app setup for GitHub Pages"
-
-# Push vers GitHub
+git commit -m "V4: Multi-joueurs temps réel avec architecture modulaire"
 git push origin main
 ```
 
-L'app sera disponible à : `https://epcrd63000.github.io/Compteur-jeux/`
+### 3. GitHub Pages est déjà configuré ✅
+
+L'app est servie automatiquement à : **https://epcrd63000.github.io/Compteur-jeux/**
 
 ## ⚙️ Configuration Supabase (Optionnel)
 

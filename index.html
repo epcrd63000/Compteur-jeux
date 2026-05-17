@@ -3,587 +3,866 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Compteur 10 000</title>
-    <!-- Tailwind CSS pour le style rapide et responsive -->
+    <meta name="theme-color" content="#0f172a">
+    <title>Compteur de Points - Multi-Jeux</title>
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
+    
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Font Awesome pour les icônes -->
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
         
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0f172a; /* Slate 900 */
-            color: white;
-            overflow: hidden; /* Empêcher le scroll pour une app native-like */
-            touch-action: manipulation; /* Optimisation tactile */
-        }
-
-        .score-text {
-            font-size: clamp(4rem, 15vw, 8rem);
-            line-height: 1;
-            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); /* Effet néon léger */
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .score-text.bump {
-            transform: scale(1.1);
-            color: #38bdf8; /* Sky 400 */
-        }
-
-        /* Variables CSS pour les couleurs d'état vocal */
-        :root {
-            --mic-idle: #64748b;
-            --mic-listening: #ef4444;
-            --mic-processing: #f59e0b;
-        }
-
-        .mic-btn {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            user-select: none;
         }
         
-        .mic-btn.listening {
-            background-color: var(--mic-listening);
-            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow: hidden;
+            touch-action: manipulation;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
         }
 
-        @keyframes pulse-ring {
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .screen-enter {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes scoreBump {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .score-bump {
+            animation: scoreBump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes victoryPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .victory-pulse {
+            animation: victoryPulse 0.6s ease-in-out infinite;
+        }
+
+        @keyframes pulseRing {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* Layout spécifique au paysage (Immersif) */
-        @media (orientation: landscape) {
-            .landscape-layout {
-                flex-direction: row !important;
-                justify-content: space-around;
-            }
-            .controls-container {
-                flex-direction: column !important;
-                gap: 2rem !important;
-                width: auto !important;
-            }
-            .score-container {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
-            .score-text {
-                font-size: clamp(6rem, 20vw, 12rem);
-            }
+        .mic-listening {
+            animation: pulseRing 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            background-color: #ef4444 !important;
         }
 
-        /* Toast de notification */
-        #toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
+        .toast {
             position: fixed;
-            z-index: 50;
+            bottom: 20px;
             left: 50%;
-            bottom: 30px;
             transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s;
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 9999;
+            border-left: 4px solid #38bdf8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease-out;
+            max-width: 90%;
         }
 
-        #toast.show {
-            visibility: visible;
-            opacity: 1;
-            bottom: 50px;
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #38bdf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+
+        .slide-fade-enter {
+            animation: slideInRight 0.3s ease-out;
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-slate-100">
+<body>
 
-    <!-- Conteneur principal qui s'adapte en portrait/paysage -->
-    <div class="landscape-layout flex flex-col w-full h-full p-6 items-center justify-between max-w-4xl mx-auto">
-        
-        <!-- En-tête -->
-        <div class="w-full text-center pt-4 opacity-50 text-sm tracking-widest uppercase flex justify-between px-4 absolute top-0 left-0 right-0">
-            <span>Objectif: 10 000</span>
-            <span id="sync-status" class="text-yellow-500"><i class="fas fa-sync-alt fa-spin"></i> Déconnecté</span>
-        </div>
-
-        <!-- Section Score -->
-        <div class="score-container flex-1 flex flex-col justify-center items-center w-full">
-            <h2 class="text-slate-400 font-semibold mb-2 uppercase tracking-wide">Score Actuel</h2>
-            <div id="score-display" class="score-text font-extrabold text-white select-none cursor-pointer" onclick="toggleEditMode()">0</div>
+    <!-- ÉCRAN 1: Configuration Initiale -->
+    <div id="screen-init" class="screen active flex flex-col items-center justify-center bg-slate-900 p-4">
+        <div class="text-center max-w-md">
+            <h1 class="text-4xl font-bold mb-2">🎮 Compteur</h1>
+            <p class="text-slate-400 mb-8">Comptage multi-joueurs temps réel</p>
             
-            <!-- Input caché pour éditer le score manuellement -->
-            <input type="number" id="score-input" class="hidden text-center bg-slate-800 text-white text-4xl rounded-lg p-2 mt-4 border-2 border-slate-600 focus:outline-none focus:border-sky-500 w-48" onblur="saveManualScore()" onkeypress="handleEnter(event)">
-            
-            <div class="mt-4 h-4 w-full max-w-xs bg-slate-800 rounded-full overflow-hidden">
-                <div id="progress-bar" class="h-full bg-gradient-to-r from-sky-500 to-indigo-500 transition-all duration-500" style="width: 0%"></div>
+            <div class="space-y-4">
+                <button onclick="showScreen('create-group')" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-plus"></i> Créer un groupe
+                </button>
+                
+                <button onclick="showScreen('join-group')" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-door-open"></i> Rejoindre
+                </button>
+                
+                <button onclick="startLocalGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="fas fa-laptop"></i> Mode local
+                </button>
             </div>
-        </div>
-
-        <!-- Section Contrôles (Boutons et Micro) -->
-        <div class="controls-container flex flex-row w-full justify-center gap-6 pb-8 items-center mt-auto z-10">
             
-            <!-- Bouton +50 -->
-            <button onclick="addPoints(50)" class="active:scale-95 transition-transform bg-slate-800 hover:bg-slate-700 text-white font-bold h-20 w-20 rounded-2xl flex flex-col items-center justify-center border-b-4 border-slate-900 shadow-lg">
-                <span class="text-2xl">+50</span>
-            </button>
-
-            <!-- Bouton Micro (Central et plus gros) -->
-            <button id="mic-btn" onclick="toggleMicrophone()" class="mic-btn bg-slate-700 hover:bg-slate-600 text-white h-24 w-24 rounded-full flex items-center justify-center text-3xl shadow-xl relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <i id="mic-icon" class="fas fa-microphone"></i>
-            </button>
-
-            <!-- Bouton +100 -->
-            <button onclick="addPoints(100)" class="active:scale-95 transition-transform bg-sky-600 hover:bg-sky-500 text-white font-bold h-20 w-20 rounded-2xl flex flex-col items-center justify-center border-b-4 border-sky-800 shadow-lg">
-                <span class="text-2xl">+100</span>
-            </button>
-
+            <p class="text-xs text-slate-500 mt-8">
+                <span id="supa-status" class="text-sky-400">Prêt</span>
+            </p>
         </div>
-        
-        <!-- Feedback vocal -->
-        <div id="speech-feedback" class="absolute bottom-32 text-center w-full text-slate-400 h-6 italic pointer-events-none">
-            <!-- Le texte reconnu s'affichera ici -->
-        </div>
-
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toast">Message</div>
-
-    <!-- Interface de Configuration Initiale Supabase (Modale) -->
-    <div id="config-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 hidden">
-        <div class="bg-slate-800 p-8 rounded-2xl max-w-md w-full shadow-2xl border border-slate-700">
-            <h2 class="text-2xl font-bold mb-4 text-white">Configuration Supabase</h2>
-            <p class="text-slate-400 mb-6 text-sm">Pour utiliser la sauvegarde en ligne, entrez vos identifiants Supabase. Sinon, jouez en local.</p>
+    <!-- ÉCRAN 2: Créer un groupe -->
+    <div id="screen-create-group" class="screen flex flex-col items-center justify-center bg-slate-900 p-4">
+        <div class="bg-slate-800 p-6 rounded-2xl max-w-md w-full">
+            <button onclick="showScreen('init')" class="mb-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6">Créer un groupe</h2>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">URL Supabase</label>
-                    <input type="text" id="supa-url-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sky-500" placeholder="https://xyzcompany.supabase.co">
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Nom du groupe</label>
+                    <input type="text" id="group-name-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="Ex: Famille Martin" maxlength="50">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Clé Anonyme (anon key)</label>
-                    <input type="password" id="supa-key-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sky-500" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                </div>
-            </div>
-
-            <div class="mt-8 flex gap-4">
-                <button onclick="initSupabaseFromModal()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                    Connecter
+                
+                <button onclick="createGroup()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                    Créer et continuer
                 </button>
-                <button onclick="closeConfigModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                    Mode Local
-                </button>
-            </div>
-            
-            <div class="mt-4 text-xs text-slate-500 text-center">
-                Assurez-vous d'avoir une table <code class="bg-slate-900 px-1 rounded">scores</code> avec une colonne <code class="bg-slate-900 px-1 rounded">score</code> (type int4) et <code class="bg-slate-900 px-1 rounded">id</code> (type int4, primary key). L'app utilisera l'id 1.
             </div>
         </div>
     </div>
 
+    <!-- ÉCRAN 3: Rejoindre un groupe -->
+    <div id="screen-join-group" class="screen flex flex-col items-center justify-center bg-slate-900 p-4">
+        <div class="bg-slate-800 p-6 rounded-2xl max-w-md w-full">
+            <button onclick="showScreen('init')" class="mb-4 text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6">Rejoindre un groupe</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Code d'invitation</label>
+                    <input type="text" id="invite-code-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white uppercase" placeholder="ABC123DEF" maxlength="9">
+                </div>
+                
+                <button onclick="joinGroup()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                    Rejoindre
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- ÉCRAN 4: Ajouter des joueurs -->
+    <div id="screen-add-players" class="screen flex flex-col bg-slate-900 p-4">
+        <div class="flex-1 overflow-y-auto">
+            <div class="max-w-md mx-auto">
+                <div class="mb-4">
+                    <button onclick="showScreen('init')" class="text-slate-400 hover:text-white transition-colors text-sm">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </button>
+                </div>
+                
+                <h2 class="text-2xl font-bold mb-6">Ajouter des joueurs</h2>
+                
+                <div id="players-list" class="space-y-2 mb-6">
+                    <!-- Dynamique -->
+                </div>
+                
+                <div class="bg-slate-800 p-4 rounded-lg mb-6">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Pseudo</label>
+                            <input type="text" id="player-name-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Nom">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Couleur</label>
+                            <input type="color" id="player-color-input" class="w-10 h-10 rounded border-2 border-slate-600 cursor-pointer" value="#3b82f6">
+                        </div>
+                        
+                        <button onclick="addPlayer()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm">
+                            <i class="fas fa-plus"></i> Ajouter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 max-w-md mx-auto w-full px-4">
+            <button onclick="showScreen('init')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                Annuler
+            </button>
+            <button onclick="startGameSetup()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                Continuer
+            </button>
+        </div>
+    </div>
+
+    <!-- ÉCRAN 5: Sélectionner un jeu -->
+    <div id="screen-select-game" class="screen flex flex-col items-center justify-center bg-slate-900 p-4">
+        <div class="max-w-md text-center w-full">
+            <h2 class="text-2xl font-bold mb-8">Sélectionner un jeu</h2>
+            
+            <button onclick="startGame('10000')" class="w-full bg-gradient-to-br from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold py-6 px-4 rounded-lg transition-colors mb-4">
+                <div class="text-3xl mb-2">🎲</div>
+                <div class="text-xl">Le 10 000</div>
+                <div class="text-xs text-blue-100 mt-2">Classique à dés</div>
+            </button>
+            
+            <button disabled class="w-full bg-slate-700 text-slate-500 font-bold py-6 px-4 rounded-lg opacity-50 mb-4">
+                <div class="text-3xl mb-2">📝</div>
+                <div class="text-xl">Scrabble</div>
+                <div class="text-xs mt-2">Bientôt disponible</div>
+            </button>
+            
+            <button onclick="showScreen('add-players')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+        </div>
+    </div>
+
+    <!-- ÉCRAN 6: Partie en cours (Le 10 000) -->
+    <div id="screen-game-10000" class="screen flex flex-col bg-slate-900">
+        <!-- En-tête -->
+        <div class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex justify-between items-center">
+            <div>
+                <p class="text-xs text-slate-400">Groupe: <span id="game-group-name">-</span></p>
+                <p class="text-sm font-semibold" id="game-code">-</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-400">Tour: <span id="turn-count">1</span></p>
+                <p class="text-sm font-semibold"><i id="sync-indicator" class="fas fa-laptop"></i> <span id="sync-status">Local</span></p>
+            </div>
+        </div>
+
+        <!-- Zone de jeu -->
+        <div class="flex-1 overflow-y-auto px-4 py-4">
+            
+            <!-- Score du joueur actif -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-6 mb-6 text-center border-2 border-sky-500">
+                <p class="text-slate-400 text-sm mb-2">JOUEUR ACTIF</p>
+                <div class="flex items-center justify-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full" id="active-player-color" style="background: #3b82f6;"></div>
+                    <h2 id="active-player-name" class="text-2xl font-bold">-</h2>
+                </div>
+                <div class="text-5xl font-extrabold mb-2" id="active-player-score">0</div>
+                <div class="text-xs text-slate-400">/ 10 000</div>
+            </div>
+
+            <!-- Mini scores des autres joueurs -->
+            <div id="other-players-list" class="space-y-2 mb-6">
+                <!-- Dynamique -->
+            </div>
+
+            <!-- Historique -->
+            <div class="bg-slate-800 rounded-lg p-4">
+                <p class="text-xs text-slate-400 mb-2">HISTORIQUE DU TOUR</p>
+                <div id="turn-history" class="space-y-1">
+                    <!-- Dynamique -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Contrôles -->
+        <div class="bg-slate-800 border-t border-slate-700 px-4 py-4">
+            
+            <!-- Boutons rapides -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button onclick="addScore(100)" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
+                    +100
+                </button>
+                <button onclick="addScore(150)" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
+                    +150
+                </button>
+                <button onclick="addScore(200)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
+                    +200
+                </button>
+                <button onclick="addScore(300)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
+                    +300
+                </button>
+            </div>
+
+            <!-- Contrôles secondaires -->
+            <div class="grid grid-cols-4 gap-2 mb-3">
+                <button id="mic-btn" onclick="toggleMicrophone()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Micro">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button onclick="undoScore()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Annuler">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button onclick="editLastScore()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Éditer">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="nextPlayer()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Suivant">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Speech feedback -->
+            <div id="speech-feedback" class="text-center text-slate-400 text-sm h-5">
+                <!-- Dynamique -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL: Éditer score -->
+    <div id="modal-edit-score" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-800 p-6 rounded-2xl max-w-sm w-full mx-4">
+            <h3 class="text-xl font-bold mb-4">Éditer le score</h3>
+            <input type="number" id="edit-score-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white text-center text-2xl mb-4" value="0">
+            <div class="flex gap-3">
+                <button onclick="closeModal('edit-score')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Annuler
+                </button>
+                <button onclick="saveEditedScore()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Valider
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <!-- SCRIPTS -->
     <script>
-        // Configuration
-        const MAX_SCORE = 10000;
-        let currentScore = 0;
-        const RECORD_ID = 1; // ID fixe dans la BDD pour simplifier
-        
-        // Supabase client instance
-        let supabase = null;
-        let isOnline = false;
+        // ============================================
+        // CONFIGURATION ET ÉTAT
+        // ============================================
+        const CONFIG = {
+            MAX_SCORE: 10000,
+            SUPABASE_URL: 'https://rcrxxlaeogpqjtymdwbk.supabase.co',
+            SUPABASE_KEY: 'sb_publishable_-TuEudsh-RRhqW2QGwfKnA_AdlPymiy',
+        };
 
-        // Éléments du DOM
-        const scoreDisplay = document.getElementById('score-display');
-        const scoreInput = document.getElementById('score-input');
-        const progressBar = document.getElementById('progress-bar');
-        const syncStatus = document.getElementById('sync-status');
-        const micBtn = document.getElementById('mic-btn');
-        const micIcon = document.getElementById('mic-icon');
-        const speechFeedback = document.getElementById('speech-feedback');
-        const configModal = document.getElementById('config-modal');
+        let appState = {
+            supabase: null,
+            currentGroup: null,
+            currentGame: null,
+            currentPlayers: [],
+            currentScores: {},
+            currentPlayerIndex: 0,
+            turnNumber: 1,
+            gameType: 'local',
+            recognition: null,
+            isListening: false
+        };
 
-        
-        // Vérifier si la config existe dans le localStorage
-        function checkSupabaseConfig() {
-            const savedUrl = localStorage.getItem('supabase_url');
-            const savedKey = localStorage.getItem('supabase_key');
+        // ============================================
+        // FONCTIONS UI
+        // ============================================
 
-            if (savedUrl && savedKey) {
-                initSupabase(savedUrl, savedKey);
-            } else {
-                // Pas de config, on utilise le localStorage par défaut et on propose la modale
-                loadLocalScore();
-                // Afficher la modale de config (décommenter pour forcer la config)
-                configModal.classList.remove('hidden');
-            }
-        }
-
-        function initSupabaseFromModal() {
-            const url = document.getElementById('supa-url-input').value.trim();
-            const key = document.getElementById('supa-key-input').value.trim();
-
-            if (url && key) {
-                localStorage.setItem('supabase_url', url);
-                localStorage.setItem('supabase_key', key);
-                initSupabase(url, key);
-                configModal.classList.add('hidden');
-            } else {
-                showToast("Veuillez remplir les deux champs.");
-            }
-        }
-
-        function closeConfigModal() {
-            configModal.classList.add('hidden');
-            showToast("Mode local activé. Les données ne seront pas synchronisées.", "warning");
-            updateSyncUI(false);
-        }
-
-        function initSupabase(url, key) {
-            try {
-                // Créer le client Supabase correctement
-                const { createClient } = window.supabase;
-                supabase = createClient(url, key);
-                isOnline = true;
-                updateSyncUI(true);
-                fetchScoreFromSupabase();
-                showToast("Connecté à Supabase !");
-            } catch (error) {
-                console.error("Erreur d'initialisation Supabase:", error);
-                isOnline = false;
-                updateSyncUI(false);
-                loadLocalScore();
-                showToast("Erreur de connexion. Mode local activé.", "error");
-            }
-        }
-
-        function updateSyncUI(online) {
-            if (online) {
-                syncStatus.innerHTML = '<i class="fas fa-cloud text-green-500"></i> En ligne';
-                syncStatus.classList.replace('text-yellow-500', 'text-green-500');
-                syncStatus.classList.replace('text-red-500', 'text-green-500');
-            } else {
-                syncStatus.innerHTML = '<i class="fas fa-cloud-offline text-red-500"></i> Local';
-                syncStatus.classList.replace('text-yellow-500', 'text-red-500');
-                syncStatus.classList.replace('text-green-500', 'text-red-500');
-            }
-        }
-
-        async function fetchScoreFromSupabase() {
-            if (!supabase) return;
-            try {
-                const { data, error } = await supabase
-                    .from('scores')
-                    .select('score')
-                    .eq('id', RECORD_ID)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') { // Ignorer l'erreur "pas de ligne trouvée"
-                    throw error;
-                }
-
-                if (data) {
-                    currentScore = data.score;
-                    updateUI();
-                } else {
-                    // Créer la ligne si elle n'existe pas
-                    await supabase.from('scores').insert([{ id: RECORD_ID, score: currentScore }]);
-                }
-            } catch (error) {
-                console.error("Erreur fetch:", error);
-                showToast("Erreur de récupération du score.", "error");
-            }
-        }
-
-        // Fonction pour debounce la sauvegarde sur Supabase (éviter de spammer l'API)
-        let saveTimeout;
-        async function saveScoreToSupabase() {
-            if (!supabase) return;
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active', 'screen-enter');
+            });
             
-            clearTimeout(saveTimeout);
-            syncStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin text-sky-500"></i> Sync...';
-            
-            saveTimeout = setTimeout(async () => {
-                try {
-                    const { error } = await supabase
-                        .from('scores')
-                        .upsert({ id: RECORD_ID, score: currentScore });
-
-                    if (error) throw error;
-                    updateSyncUI(true);
-                } catch (error) {
-                    console.error("Erreur sauvegarde:", error);
-                    updateSyncUI(false);
-                }
-            }, 1000); // Attendre 1s après la dernière modif avant de sauvegarder
-        }
-
-        function loadLocalScore() {
-            const saved = localStorage.getItem('local_score');
-            if (saved) {
-                currentScore = parseInt(saved, 10);
-                updateUI();
+            const screen = document.getElementById(`screen-${screenId}`);
+            if (screen) {
+                screen.classList.add('active', 'screen-enter');
             }
         }
 
-        function saveLocalScore() {
-            localStorage.setItem('local_score', currentScore);
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            const container = document.getElementById('toast-container');
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
         }
 
-        
-        function updateUI() {
-            // Mettre à jour le texte avec animation
-            scoreDisplay.textContent = currentScore.toLocaleString('fr-FR');
+        function openModal(modalId) {
+            document.getElementById(`modal-${modalId}`).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(`modal-${modalId}`).classList.add('hidden');
+        }
+
+        // ============================================
+        // GESTION DES GROUPES
+        // ============================================
+
+        function createGroup() {
+            const name = document.getElementById('group-name-input').value.trim();
+            if (!name) {
+                showToast('Veuillez entrer un nom', 'error');
+                return;
+            }
+
+            appState.currentGroup = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: name,
+                code: Math.random().toString(36).substr(2, 6).toUpperCase()
+            };
+
+            showToast(`Groupe "${name}" créé !`, 'success');
+            showScreen('add-players');
+        }
+
+        function joinGroup() {
+            const code = document.getElementById('invite-code-input').value.trim().toUpperCase();
+            if (!code || code.length < 6) {
+                showToast('Code invalide', 'error');
+                return;
+            }
+
+            appState.currentGroup = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: 'Groupe (rejoint)',
+                code: code
+            };
+
+            showToast('Groupe rejoint !', 'success');
+            showScreen('add-players');
+        }
+
+        function startLocalGame() {
+            appState.gameType = 'local';
+            appState.currentGroup = {
+                id: 'local',
+                name: 'Partie locale',
+                code: 'LOCAL'
+            };
+            showScreen('add-players');
+        }
+
+        // ============================================
+        // GESTION DES JOUEURS
+        // ============================================
+
+        function addPlayer() {
+            const name = document.getElementById('player-name-input').value.trim();
+            const color = document.getElementById('player-color-input').value;
+
+            if (!name) {
+                showToast('Veuillez entrer un pseudo', 'error');
+                return;
+            }
+
+            if (appState.currentPlayers.length >= 10) {
+                showToast('Maximum 10 joueurs', 'error');
+                return;
+            }
+
+            const player = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: name,
+                color: color
+            };
+
+            appState.currentPlayers.push(player);
+            document.getElementById('player-name-input').value = '';
+            renderPlayersList();
+            showToast(`${name} ajouté !`, 'success');
+        }
+
+        function removePlayer(playerId) {
+            appState.currentPlayers = appState.currentPlayers.filter(p => p.id !== playerId);
+            renderPlayersList();
+            showToast('Joueur supprimé', 'success');
+        }
+
+        function renderPlayersList() {
+            const list = document.getElementById('players-list');
+            list.innerHTML = appState.currentPlayers.map(player => `
+                <div class="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full" style="background: ${player.color};"></div>
+                        <span class="font-semibold">${player.name}</span>
+                    </div>
+                    <button onclick="removePlayer('${player.id}')" class="text-slate-400 hover:text-red-500 transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function startGameSetup() {
+            if (appState.currentPlayers.length < 2) {
+                showToast('Minimum 2 joueurs requis', 'error');
+                return;
+            }
+
+            showScreen('select-game');
+        }
+
+        // ============================================
+        // GESTION DE LA PARTIE
+        // ============================================
+
+        function startGame(gameType) {
+            appState.currentGame = {
+                id: Math.random().toString(36).substr(2, 9),
+                type: gameType,
+                status: 'active',
+                startTime: Date.now()
+            };
+
+            appState.currentScores = {};
+            appState.currentPlayers.forEach(player => {
+                appState.currentScores[player.id] = {
+                    total: 0,
+                    turnTotal: 0,
+                    history: [],
+                    turnHistory: []
+                };
+            });
+
+            appState.currentPlayerIndex = 0;
+            appState.turnNumber = 1;
+
+            initSpeechRecognition();
+            showScreen('game-10000');
+            updateGameUI();
+        }
+
+        function updateGameUI() {
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            if (!currentPlayer) return;
+
+            const scores = appState.currentScores[currentPlayer.id];
+
+            document.getElementById('game-group-name').textContent = appState.currentGroup.name;
+            document.getElementById('game-code').textContent = appState.currentGroup.code || 'LOCAL';
+            document.getElementById('turn-count').textContent = appState.turnNumber;
             
-            // Animation Bump
-            scoreDisplay.classList.remove('bump');
-            void scoreDisplay.offsetWidth; // Trigger reflow
-            scoreDisplay.classList.add('bump');
+            document.getElementById('active-player-name').textContent = currentPlayer.name;
+            document.getElementById('active-player-color').style.background = currentPlayer.color;
+            document.getElementById('active-player-score').textContent = scores.total.toLocaleString('fr-FR');
+
+            renderOtherPlayers();
+            renderTurnHistory();
+            updateSyncStatus();
+        }
+
+        function renderOtherPlayers() {
+            const list = document.getElementById('other-players-list');
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+
+            list.innerHTML = appState.currentPlayers
+                .filter(p => p.id !== currentPlayer.id)
+                .map(player => {
+                    const scores = appState.currentScores[player.id];
+                    return `
+                        <div class="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full" style="background: ${player.color};"></div>
+                                <span class="font-semibold text-sm">${player.name}</span>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold">${scores.total}</p>
+                                <p class="text-xs text-slate-400">/ 10k</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        function renderTurnHistory() {
+            const history = document.getElementById('turn-history');
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            const scores = appState.currentScores[currentPlayer.id];
+
+            history.innerHTML = scores.turnHistory.length > 0
+                ? scores.turnHistory.map((score, idx) => `
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-400">Action ${idx + 1}</span>
+                        <span class="font-bold">+${score}</span>
+                    </div>
+                `).join('')
+                : '<p class="text-slate-500 text-sm italic">Aucun point pour ce tour</p>';
+        }
+
+        function addScore(points) {
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            const scores = appState.currentScores[currentPlayer.id];
+
+            scores.turnHistory.push(points);
+            scores.turnTotal = scores.turnHistory.reduce((a, b) => a + b, 0);
+
+            updateGameUI();
+
+            const scoreDisplay = document.getElementById('active-player-score');
+            scoreDisplay.classList.add('score-bump');
+            setTimeout(() => scoreDisplay.classList.remove('score-bump'), 400);
+
+            if (scores.turnTotal >= 50) {
+                setTimeout(() => endTurn(), 1500);
+            }
+        }
+
+        function endTurn() {
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            const scores = appState.currentScores[currentPlayer.id];
+
+            scores.total += scores.turnTotal;
+            scores.history.push({
+                turn: appState.turnNumber,
+                score: scores.turnTotal,
+                timestamp: Date.now()
+            });
+
+            scores.turnHistory = [];
+            scores.turnTotal = 0;
+
+            if (scores.total >= CONFIG.MAX_SCORE) {
+                triggerVictory(currentPlayer);
+                return;
+            }
+
+            nextPlayer();
+        }
+
+        function nextPlayer() {
+            appState.currentPlayerIndex = (appState.currentPlayerIndex + 1) % appState.currentPlayers.length;
             
+            if (appState.currentPlayerIndex === 0) {
+                appState.turnNumber++;
+            }
+
+            updateGameUI();
+        }
+
+        function undoScore() {
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            const scores = appState.currentScores[currentPlayer.id];
+
+            if (scores.turnHistory.length > 0) {
+                scores.turnHistory.pop();
+                scores.turnTotal = scores.turnHistory.reduce((a, b) => a + b, 0);
+                updateGameUI();
+                showToast('Score annulé', 'success');
+            }
+        }
+
+        function editLastScore() {
+            openModal('edit-score');
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            const scores = appState.currentScores[currentPlayer.id];
+            const lastScore = scores.turnHistory[scores.turnHistory.length - 1] || 0;
+            document.getElementById('edit-score-input').value = lastScore;
+        }
+
+        function saveEditedScore() {
+            const newScore = parseInt(document.getElementById('edit-score-input').value, 10);
+            if (isNaN(newScore) || newScore < 0) {
+                showToast('Score invalide', 'error');
+                return;
+            }
+
+            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+            const scores = appState.currentScores[currentPlayer.id];
+
+            if (scores.turnHistory.length > 0) {
+                scores.turnHistory[scores.turnHistory.length - 1] = newScore;
+                scores.turnTotal = scores.turnHistory.reduce((a, b) => a + b, 0);
+            }
+
+            closeModal('edit-score');
+            updateGameUI();
+            showToast('Score modifié', 'success');
+        }
+
+        function triggerVictory(player) {
+            showToast(`🎉 ${player.name} a gagné !`, 'success');
+            
+            const scoreDisplay = document.getElementById('active-player-score');
+            scoreDisplay.classList.add('victory-pulse');
+
             setTimeout(() => {
-                scoreDisplay.classList.remove('bump');
-            }, 300);
-
-            // Mettre à jour la barre de progression
-            const percentage = Math.min((currentScore / MAX_SCORE) * 100, 100);
-            progressBar.style.width = `${percentage}%`;
-
-            // Si on atteint l'objectif
-            if (currentScore >= MAX_SCORE) {
-                progressBar.classList.replace('from-sky-500', 'from-green-500');
-                progressBar.classList.replace('to-indigo-500', 'to-emerald-500');
-                scoreDisplay.style.color = '#10b981'; // Emerald 500
-            } else {
-                progressBar.classList.replace('from-green-500', 'from-sky-500');
-                progressBar.classList.replace('to-emerald-500', 'to-indigo-500');
-                scoreDisplay.style.color = 'white';
-            }
+                if (confirm(`${player.name} a gagné ! Fin de partie ?`)) {
+                    endGame();
+                }
+            }, 5000);
         }
 
-        function addPoints(points) {
-            currentScore += points;
-            
-            // Sécurité pour ne pas aller en dessous de 0 si on ajoute des points négatifs
-            if(currentScore < 0) currentScore = 0;
-
-            updateUI();
-            
-            // Sauvegarder
-            saveLocalScore();
-            if (isOnline) saveScoreToSupabase();
-            
-            // Feedback léger
-            if ('vibrate' in navigator) {
-                navigator.vibrate(50);
-            }
+        function endGame() {
+            showScreen('init');
+            appState.currentPlayers = [];
+            appState.currentScores = {};
         }
 
-        // --- Édition manuelle du score ---
-        function toggleEditMode() {
-            scoreDisplay.classList.add('hidden');
-            scoreInput.classList.remove('hidden');
-            scoreInput.value = currentScore;
-            scoreInput.focus();
-        }
+        // ============================================
+        // RECONNAISSANCE VOCALE
+        // ============================================
 
-        function saveManualScore() {
-            const val = parseInt(scoreInput.value, 10);
-            if (!isNaN(val)) {
-                currentScore = val;
-                updateUI();
-                saveLocalScore();
-                if (isOnline) saveScoreToSupabase();
-            }
-            scoreInput.classList.add('hidden');
-            scoreDisplay.classList.remove('hidden');
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') {
-                scoreInput.blur();
-            }
-        }
-
-        
-        let recognition = null;
-        let isListening = false;
-
-        // Initialisation de l'API vocale
         function initSpeechRecognition() {
             window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
             if (!window.SpeechRecognition) {
-                console.warn("L'API de reconnaissance vocale n'est pas supportée sur ce navigateur.");
-                micBtn.style.opacity = "0.5";
-                micBtn.onclick = () => showToast("Micro non supporté sur ce navigateur.", "error");
+                console.warn("Web Speech API non supportée");
                 return;
             }
 
-            recognition = new window.SpeechRecognition();
-            // Configuration
-            recognition.lang = 'fr-FR'; // Langue française
-            recognition.continuous = false; // Ne pas écouter en continu pour économiser la batterie, on doit rappuyer ou gérer la boucle
-            recognition.interimResults = false; // On ne veut que le résultat final
-            recognition.maxAlternatives = 1;
+            appState.recognition = new window.SpeechRecognition();
+            appState.recognition.lang = 'fr-FR';
+            appState.recognition.continuous = false;
+            appState.recognition.interimResults = false;
 
-            recognition.onstart = () => {
-                isListening = true;
-                micBtn.classList.add('listening');
-                micIcon.classList.replace('fa-microphone', 'fa-microphone-lines');
-                speechFeedback.textContent = "Je vous écoute...";
+            appState.recognition.onstart = () => {
+                appState.isListening = true;
+                document.getElementById('mic-btn').classList.add('mic-listening');
+                document.getElementById('speech-feedback').textContent = "J'écoute...";
             };
 
-            recognition.onresult = (event) => {
-                const speechResult = event.results[0][0].transcript.toLowerCase();
-                console.log("Texte reconnu:", speechResult);
-                processSpeechCommand(speechResult);
+            appState.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                processSpeechInput(transcript);
             };
 
-            recognition.onspeechend = () => {
-                recognition.stop();
+            appState.recognition.onend = () => {
+                appState.isListening = false;
+                document.getElementById('mic-btn').classList.remove('mic-listening');
             };
 
-            recognition.onend = () => {
-                isListening = false;
-                micBtn.classList.remove('listening');
-                micIcon.classList.replace('fa-microphone-lines', 'fa-microphone');
-                setTimeout(() => {
-                    if (speechFeedback.textContent === "Je vous écoute...") {
-                        speechFeedback.textContent = "";
-                    }
-                }, 2000);
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Erreur de reconnaissance vocale :", event.error);
-                speechFeedback.textContent = "Erreur: " + event.error;
-                isListening = false;
-                micBtn.classList.remove('listening');
-                micIcon.classList.replace('fa-microphone-lines', 'fa-microphone');
-                
-                if (event.error === 'not-allowed') {
-                    showToast("L'accès au micro a été refusé.", "error");
-                }
+            appState.recognition.onerror = (event) => {
+                console.error("Erreur vocale:", event.error);
+                document.getElementById('speech-feedback').textContent = "Erreur: " + event.error;
             };
         }
 
         function toggleMicrophone() {
-            if (!recognition) return;
+            if (!appState.recognition) return;
 
-            if (isListening) {
-                recognition.stop();
+            if (appState.isListening) {
+                appState.recognition.stop();
             } else {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.error("Erreur au démarrage du micro:", e);
-                }
+                appState.recognition.start();
             }
         }
 
-        // Logique de traitement du langage naturel simplifié
-        function processSpeechCommand(text) {
-            speechFeedback.textContent = `"${text}"`;
-            let pointsToAdd = 0;
-
-            // Dictionnaire simple pour les nombres en lettres courants
-            const textToNumberMap = {
-                "dix": 10, "vingt": 20, "trente": 30, "quarante": 40, "cinquante": 50,
-                "soixante": 60, "soixante-dix": 70, "quatre-vingt": 80, "quatre-vingts": 80,
-                "quatre-vingt-dix": 90, "cent": 100, "deux-cents": 200, "deux cents": 200,
-                "cinq-cents": 500, "cinq cents": 500, "mille": 1000
+        function processSpeechInput(text) {
+            const numberMap = {
+                "cent": 100, "centime": 100,
+                "cent-cinquante": 150, "cent cinquante": 150,
+                "deux-cents": 200, "deux cents": 200,
+                "trois-cents": 300, "trois cents": 300,
+                "quatre-cents": 400, "quatre cents": 400,
+                "cinq-cents": 500, "cinq cents": 500,
             };
 
-            // 1. Chercher des nombres (digits) dans le texte
-            // Ex: "ajoute 50", "plus 100", "50", "100"
-            const numbersInText = text.match(/\d+/g);
-            if (numbersInText && numbersInText.length > 0) {
-                // On prend le premier nombre trouvé
-                pointsToAdd = parseInt(numbersInText[0], 10);
-            } 
-            // 2. Si pas de chiffres, on cherche des mots correspondant à des nombres
-            else {
-                // Nettoyage de base (enlever les 'plus', 'ajoute', etc. pour isoler le nombre)
-                let cleanText = text.replace(/(ajoute|plus|mets|ajouter|score|points)/gi, '').trim();
-                
-                // Vérifier si le texte nettoyé est dans notre map
-                if (textToNumberMap[cleanText]) {
-                    pointsToAdd = textToNumberMap[cleanText];
-                } else {
-                    // Essayer de trouver un mot clé dans la phrase originale
-                    for (const [word, value] of Object.entries(textToNumberMap)) {
-                        if (text.includes(word)) {
-                            pointsToAdd = value;
-                            break; // On prend le premier trouvé
-                        }
+            let score = 0;
+            const numbers = text.match(/\d+/g);
+            if (numbers) {
+                score = parseInt(numbers[0], 10);
+            } else {
+                for (const [word, value] of Object.entries(numberMap)) {
+                    if (text.includes(word)) {
+                        score = value;
+                        break;
                     }
                 }
             }
 
-            if (pointsToAdd > 0) {
-                speechFeedback.textContent = `+${pointsToAdd} points ajoutés !`;
-                speechFeedback.classList.replace('text-slate-400', 'text-green-400');
-                
-                addPoints(pointsToAdd);
-
-                setTimeout(() => {
-                    speechFeedback.classList.replace('text-green-400', 'text-slate-400');
-                    speechFeedback.textContent = "";
-                }, 2000);
+            if (score > 0) {
+                document.getElementById('speech-feedback').textContent = `+${score} reconnu !`;
+                addScore(score);
             } else {
-                speechFeedback.textContent = "Commande non comprise.";
-                speechFeedback.classList.replace('text-slate-400', 'text-yellow-400');
-                setTimeout(() => {
-                    speechFeedback.classList.replace('text-yellow-400', 'text-slate-400');
-                    speechFeedback.textContent = "";
-                }, 2000);
+                document.getElementById('speech-feedback').textContent = "Non reconnu";
             }
         }
 
+        function updateSyncStatus() {
+            const indicator = document.getElementById('sync-indicator');
+            const statusText = document.getElementById('sync-status');
 
-        function showToast(message, type = "info") {
-            const toast = document.getElementById("toast");
-            toast.textContent = message;
-            
-            if (type === "error") {
-                toast.style.backgroundColor = "#ef4444"; // Red
-            } else if (type === "warning") {
-                toast.style.backgroundColor = "#f59e0b"; // Amber
+            if (appState.gameType === 'online') {
+                indicator.className = 'fas fa-cloud text-green-500';
+                statusText.textContent = 'En ligne';
             } else {
-                toast.style.backgroundColor = "#333";
+                indicator.className = 'fas fa-laptop text-slate-400';
+                statusText.textContent = 'Local';
             }
-
-            toast.classList.add("show");
-            setTimeout(() => {
-                toast.classList.remove("show");
-            }, 3000);
         }
 
-        // Initialisation au chargement de la page
-        window.onload = () => {
-            initSpeechRecognition();
-            checkSupabaseConfig(); // Vérifie Supabase, charge le score local/distant
-            updateUI(); // Affiche 0 initialement
+        // ============================================
+        // INITIALISATION
+        // ============================================
 
-            // Fonctionnalité de debug : double clic sur le statut en haut à gauche pour reset la config
-            syncStatus.parentElement.ondblclick = () => {
-                if(confirm("Voulez-vous réinitialiser la configuration Supabase ?")) {
-                    localStorage.removeItem('supabase_url');
-                    localStorage.removeItem('supabase_key');
-                    location.reload();
-                }
-            };
-        };
+        window.addEventListener('load', () => {
+            if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && window.supabase) {
+                appState.supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+                document.getElementById('supa-status').textContent = 'Prêt (Connecté à Supabase)';
+                appState.gameType = 'online';
+                updateSyncStatus();
+            } else {
+                document.getElementById('supa-status').textContent = 'Prêt (mode démo)';
+            }
+        });
 
+        document.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                e.preventDefault();
+            }
+        }, false);
     </script>
+
 </body>
 </html>
