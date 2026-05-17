@@ -216,11 +216,42 @@ class UIManager {
                 return;
             }
 
-            // Charger les membres du groupe
-            const members = await indexedDBManager.getGroupMembers(groupId);
-            const players = await Promise.all(
-                members.map(m => indexedDBManager.getUser(m.user_id))
-            );
+            // Récupérer les joueurs depuis le formulaire
+            const playerInputs = document.querySelectorAll('.player-input-group');
+            const players = [];
+
+            for (const input of playerInputs) {
+                const nameInput = input.querySelector('.player-name-input');
+                const colorInput = input.querySelector('.player-color-input');
+                
+                if (nameInput && nameInput.value.trim()) {
+                    const playerId = this._generateUUID();
+                    players.push({
+                        id: playerId,
+                        pseudo: nameInput.value.trim(),
+                        color: colorInput ? colorInput.value : '#3498db',
+                        email: null,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    });
+                    
+                    // Sauvegarder le joueur en local
+                    await indexedDBManager.saveUser({
+                        id: playerId,
+                        pseudo: nameInput.value.trim(),
+                        color: colorInput ? colorInput.value : '#3498db',
+                        email: null
+                    });
+                    
+                    // Ajouter à la BD du groupe
+                    await indexedDBManager.addGroupMember(groupId, playerId);
+                }
+            }
+
+            if (players.length === 0) {
+                alert('Veuillez ajouter au moins un joueur');
+                return;
+            }
 
             // Créer la partie
             const gameData = {
