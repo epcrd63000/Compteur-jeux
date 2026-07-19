@@ -28,21 +28,19 @@ Application web progressive pour le comptage multi-joueurs temps réel, avec sup
 
 ## 🚀 Déploiement sur GitHub Pages
 
-### 1. Vérifier le statut
+L'application a été configurée pour être entièrement compatible avec GitHub Pages :
+- **Chemins relatifs :** Les liens vers `manifest.json`, `sw.js` et `icon.png` ont été passés en relatif pour fonctionner dans le sous-dossier `/Compteur-jeux/`.
+- **Inhibition WebSocket :** La tentative de connexion WebSocket est désactivée automatiquement lorsque l'app tourne sur un domaine `github.io` pour éviter les boucles d'erreur de reconnexion en console.
 
-```bash
-git status
-```
-
-### 2. Pousser les changements
+### 1. Pousser les changements
 
 ```bash
 git add .
-git commit -m "V4: Multi-joueurs temps réel avec architecture modulaire"
+git commit -m "Configure paths for GitHub Pages subfolder deployment"
 git push origin main
 ```
 
-### 3. GitHub Pages est déjà configuré ✅
+### 2. Accès à l'application
 
 L'app est servie automatiquement à : **https://epcrd63000.github.io/Compteur-jeux/**
 

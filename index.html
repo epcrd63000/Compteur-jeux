@@ -3,866 +3,497 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0f172a">
-    <title>Compteur de Points - Multi-Jeux</title>
+    <title>Compteur Multijeux</title>
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Tailwind CSS -->
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1b5e20">
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
-        
-        * {
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            user-select: none;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0f172a;
-            color: white;
-            overflow: hidden;
-            touch-action: manipulation;
-            height: 100vh;
-            width: 100vw;
-            margin: 0;
-            padding: 0;
-        }
+        /* Thèmes Généraux */
+        body { background: #111; font-family: "Georgia", serif; touch-action: manipulation; transition: background 0.3s ease; }
+        .gold-text { color: #ffd700; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .hidden-view { display: none !important; }
 
-        .screen {
-            display: none;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
+        /* Menu */
+        .menu-btn { transition: transform 0.2s; }
+        .menu-btn:hover { transform: scale(1.05); }
 
-        .screen.active {
-            display: flex;
-        }
+        /* Thème 10 000 (Billard) */
+        .billiard-table { background: radial-gradient(circle at center, #1b5e20 0%, #082d0f 100%); border: 16px solid #4e342e; border-radius: 24px; box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .wood-border { background: repeating-linear-gradient(45deg, #5d4037, #5d4037 10px, #4e342e 10px, #4e342e 20px); padding: 12px; border-radius: 32px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .active-player-10000 { border-color: #ffd700 !important; background-color: rgba(255, 215, 0, 0.15); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        .btn-dice { background: radial-gradient(circle at 30% 30%, #ffffff, #fcf8f2 60%, #e8dec8); color: #1a1a1a; border: 1px solid #d1c1a3; border-radius: 16px; box-shadow: inset -4px -4px 10px rgba(0,0,0,0.15), inset 4px 4px 10px rgba(255,255,255,0.9), 0 6px 10px rgba(0,0,0,0.4); transition: transform 0.1s, box-shadow 0.1s; font-family: "Courier New", Courier, monospace; font-weight: 900; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
+        .btn-dice:active { transform: translateY(4px); box-shadow: inset -2px -2px 5px rgba(0,0,0,0.1), inset 2px 2px 5px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.4); }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        /* Thème Scrabble */
+        .scrabble-table { background: radial-gradient(circle at center, #f5deb3 0%, #e6c280 100%); border: 16px solid #8b4513; border-radius: 8px; box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .wood-border-scrabble { background: #4a2511; padding: 12px; border-radius: 12px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .active-player-scrabble { border-color: #8b4513 !important; background-color: rgba(139, 69, 19, 0.15); box-shadow: 0 0 15px rgba(139, 69, 19, 0.4); }
+        .btn-tile { background: #ffdead; color: #3e2723; border: 2px solid #deb887; border-radius: 8px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); font-family: "Arial", sans-serif; font-weight: bold; transition: transform 0.1s; }
+        .btn-tile:active { transform: translateY(2px); box-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
 
-        .screen-enter {
-            animation: slideInRight 0.3s ease-out;
-        }
-
-        @keyframes scoreBump {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-
-        .score-bump {
-            animation: scoreBump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes victoryPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        .victory-pulse {
-            animation: victoryPulse 0.6s ease-in-out infinite;
-        }
-
-        @keyframes pulseRing {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .mic-listening {
-            animation: pulseRing 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-            background-color: #ef4444 !important;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e293b;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            z-index: 9999;
-            border-left: 4px solid #38bdf8;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            animation: slideInRight 0.3s ease-out;
-            max-width: 90%;
-        }
-
-        .toast.error {
-            border-left-color: #ef4444;
-        }
-
-        .toast.success {
-            border-left-color: #10b981;
-        }
-
-        .toast.warning {
-            border-left-color: #f59e0b;
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #38bdf8;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        input, select, textarea {
-            font-size: 16px !important;
-        }
-
-        .slide-fade-enter {
-            animation: slideInRight 0.3s ease-out;
-        }
+        /* Micro & Toast */
+        .mic-active { animation: pulse-recording 1.5s infinite; color: white !important; background-color: #ef4444; }
+        @keyframes pulse-recording { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); } 70% { transform: scale(1.15); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
-<body>
-
-    <!-- ÉCRAN 1: Configuration Initiale -->
-    <div id="screen-init" class="screen active flex flex-col items-center justify-center bg-slate-900 p-4">
-        <div class="text-center max-w-md">
-            <h1 class="text-4xl font-bold mb-2">🎮 Compteur</h1>
-            <p class="text-slate-400 mb-8">Comptage multi-joueurs temps réel</p>
-            
-            <div class="space-y-4">
-                <button onclick="showScreen('create-group')" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="fas fa-plus"></i> Créer un groupe
-                </button>
-                
-                <button onclick="showScreen('join-group')" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="fas fa-door-open"></i> Rejoindre
-                </button>
-                
-                <button onclick="startLocalGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="fas fa-laptop"></i> Mode local
-                </button>
-            </div>
-            
-            <p class="text-xs text-slate-500 mt-8">
-                <span id="supa-status" class="text-sky-400">Prêt</span>
-            </p>
-        </div>
-    </div>
-
-    <!-- ÉCRAN 2: Créer un groupe -->
-    <div id="screen-create-group" class="screen flex flex-col items-center justify-center bg-slate-900 p-4">
-        <div class="bg-slate-800 p-6 rounded-2xl max-w-md w-full">
-            <button onclick="showScreen('init')" class="mb-4 text-slate-400 hover:text-white transition-colors">
-                <i class="fas fa-arrow-left"></i> Retour
+<body class="min-h-screen p-2 md:p-6 pb-[450px] md:pb-80" style="margin: 0 auto; max-w-2xl">
+    
+    <!-- VIEW: MENU -->
+    <div id="view-menu" class="max-w-2xl mx-auto text-center space-y-8 mt-12 hidden-view">
+        <h1 class="text-4xl md:text-5xl font-bold gold-text tracking-wider mb-12">Jeux de Société</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+            <button onclick="setGameMode('10000')" class="menu-btn bg-gradient-to-br from-green-800 to-green-900 border-4 border-yellow-600 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4">
+                <i class="fa-solid fa-dice text-6xl text-white"></i>
+                <h2 class="text-3xl font-bold text-yellow-400">Le 10 000</h2>
+                <p class="text-green-200 text-sm font-sans">Compteur aux multiples de 50</p>
             </button>
             
-            <h2 class="text-2xl font-bold mb-6">Créer un groupe</h2>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Nom du groupe</label>
-                    <input type="text" id="group-name-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="Ex: Famille Martin" maxlength="50">
-                </div>
-                
-                <button onclick="createGroup()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                    Créer et continuer
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ÉCRAN 3: Rejoindre un groupe -->
-    <div id="screen-join-group" class="screen flex flex-col items-center justify-center bg-slate-900 p-4">
-        <div class="bg-slate-800 p-6 rounded-2xl max-w-md w-full">
-            <button onclick="showScreen('init')" class="mb-4 text-slate-400 hover:text-white transition-colors">
-                <i class="fas fa-arrow-left"></i> Retour
+            <button onclick="setGameMode('scrabble')" class="menu-btn bg-gradient-to-br from-[#8b4513] to-[#5c2e0e] border-4 border-[#deb887] rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4">
+                <i class="fa-solid fa-font text-6xl text-white"></i>
+                <h2 class="text-3xl font-bold text-[#ffdead]">Scrabble</h2>
+                <p class="text-[#e6c280] text-sm font-sans">Compteur libre avec pavé numérique</p>
             </button>
-            
-            <h2 class="text-2xl font-bold mb-6">Rejoindre un groupe</h2>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-2">Code d'invitation</label>
-                    <input type="text" id="invite-code-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white uppercase" placeholder="ABC123DEF" maxlength="9">
+        </div>
+    </div>
+
+    <!-- VIEW: 10000 -->
+    <div id="view-10000" class="w-full max-w-2xl mx-auto hidden-view">
+        <div class="wood-border">
+            <div class="billiard-table p-4 md:p-8 space-y-6 min-h-[70vh]">
+                <header class="flex justify-between items-center py-2 border-b border-green-800 pb-4">
+                    <button onclick="setGameMode('menu')" class="text-white bg-black/40 hover:bg-black/60 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i> Menu</button>
+                    <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-wider">🎲 LE 10 000 🎲</h1>
+                    <div class="w-16"></div> <!-- spacer -->
+                </header>
+
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-black/40 p-3 rounded-lg border border-green-900/50 shadow-inner">
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <input type="text" id="newPlayerName10000" placeholder="Nom du joueur" class="flex-1 md:w-48 bg-black/50 border border-green-700/50 rounded px-3 py-2 text-white focus:outline-none focus:border-yellow-500 font-sans text-sm">
+                        <button onclick="addPlayer('10000')" class="bg-yellow-600 hover:bg-yellow-500 text-black px-4 py-2 rounded font-bold shadow"><i class="fa-solid fa-user-plus"></i></button>
+                    </div>
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <button onclick="resetScores()" class="flex-1 md:flex-none text-blue-400 hover:text-blue-300 px-3 py-2 text-sm font-bold bg-black/30 rounded" title="Fin de partie (Scores à 0)"><i class="fa-solid fa-flag-checkered mr-1"></i> Fin de partie</button>
+                        <button onclick="clearPlayers()" class="flex-1 md:flex-none text-red-400 hover:text-red-300 px-3 py-2 text-sm font-bold bg-black/30 rounded" title="Tout effacer"><i class="fa-solid fa-trash-can mr-1"></i> RAZ</button>
+                    </div>
                 </div>
-                
-                <button onclick="joinGroup()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                    Rejoindre
-                </button>
+
+                <div id="playersList10000" class="space-y-3 pb-8"></div>
+            </div>
+        </div>
+        
+        <div class="fixed bottom-0 left-0 w-full bg-[#2d1a0e] border-t-4 border-[#4e342e] p-4 shadow-[0_-10px_25px_rgba(0,0,0,0.5)] z-50">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="text-sm text-yellow-500/80 font-serif">TOUR : <strong id="currentPlayerName10000" class="gold-text text-xl ml-2 uppercase tracking-wide">--</strong></div>
+                    <div class="flex space-x-4 items-center">
+                        <button onclick="toggleMic()" id="micBtn10000" class="text-white hover:text-red-400 text-4xl p-3 rounded-full drop-shadow-md transition-all duration-300 flex items-center justify-center w-16 h-16"><i class="fa-solid fa-microphone"></i></button>
+                        <button onclick="undo()" class="undoBtn text-orange-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-sm font-sans bg-black/30 px-3 py-1 rounded"><i class="fa-solid fa-rotate-left mr-1"></i> Annuler</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 md:gap-3">
+                    <button onclick="addScore(50)" class="btn-dice text-xl py-3 md:py-4">50</button>
+                    <button onclick="addScore(100)" class="btn-dice text-xl py-3 md:py-4">100</button>
+                    <button onclick="addScore(150)" class="btn-dice text-xl py-3 md:py-4">150</button>
+                    <button onclick="addScore(200)" class="btn-dice text-xl py-3 md:py-4">200</button>
+                    <button onclick="addScore(250)" class="btn-dice text-xl py-3 md:py-4">250</button>
+                    <button onclick="addScore(300)" class="btn-dice text-xl py-3 md:py-4">300</button>
+                    <button onclick="addScore(500)" class="btn-dice text-xl py-3 md:py-4">500</button>
+                    <button onclick="addScore(1000)" class="btn-dice text-xl py-3 md:py-4 bg-yellow-50 border-yellow-200">1000</button>
+                    <button onclick="addScore(0)" class="col-span-4 bg-red-900/80 hover:bg-red-800 text-red-100 text-lg font-bold py-3 rounded-lg border-2 border-red-950 mt-1 shadow-inner font-sans"><i class="fa-solid fa-forward-step mr-2"></i>Zéro (Tour Suivant)</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ÉCRAN 4: Ajouter des joueurs -->
-    <div id="screen-add-players" class="screen flex flex-col bg-slate-900 p-4">
-        <div class="flex-1 overflow-y-auto">
-            <div class="max-w-md mx-auto">
-                <div class="mb-4">
-                    <button onclick="showScreen('init')" class="text-slate-400 hover:text-white transition-colors text-sm">
-                        <i class="fas fa-arrow-left"></i> Retour
-                    </button>
+    <!-- VIEW: SCRABBLE -->
+    <div id="view-scrabble" class="w-full max-w-2xl mx-auto hidden-view">
+        <div class="wood-border-scrabble">
+            <div class="scrabble-table p-4 md:p-8 space-y-6 min-h-[70vh]">
+                <header class="flex justify-between items-center py-2 border-b border-[#8b4513] pb-4">
+                    <button onclick="setGameMode('menu')" class="text-[#3e2723] bg-[#ffdead]/50 hover:bg-[#ffdead] px-3 py-2 rounded text-sm font-bold"><i class="fa-solid fa-arrow-left"></i> Menu</button>
+                    <h1 class="text-2xl md:text-3xl font-bold text-[#5c2e0e] tracking-wider uppercase" style="font-family: Arial, sans-serif;">Scrabble</h1>
+                    <div class="w-16"></div>
+                </header>
+
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-[#8b4513]/20 p-3 rounded-lg border border-[#8b4513]/50 shadow-inner">
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <input type="text" id="newPlayerNameScrabble" placeholder="Nom du joueur" class="flex-1 md:w-48 bg-white/70 border border-[#8b4513]/50 rounded px-3 py-2 text-[#3e2723] placeholder-[#8b4513] focus:outline-none focus:border-[#8b4513] font-sans text-sm font-bold">
+                        <button onclick="addPlayer('scrabble')" class="bg-[#5c2e0e] hover:bg-[#3e2723] text-white px-4 py-2 rounded font-bold shadow"><i class="fa-solid fa-user-plus"></i></button>
+                    </div>
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <button onclick="resetScores()" class="flex-1 md:flex-none text-blue-700 hover:text-blue-900 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Fin de partie (Scores à 0)"><i class="fa-solid fa-flag-checkered mr-1"></i> Fin de partie</button>
+                        <button onclick="clearPlayers()" class="flex-1 md:flex-none text-red-700 hover:text-red-900 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Tout effacer"><i class="fa-solid fa-trash-can mr-1"></i> RAZ</button>
+                    </div>
+                </div>
+
+                <div id="playersListScrabble" class="space-y-3 pb-8"></div>
+            </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 w-full bg-[#3e2723] border-t-4 border-[#5c2e0e] p-4 shadow-[0_-10px_25px_rgba(0,0,0,0.5)] z-50">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="text-sm text-[#ffdead] font-sans font-bold">TOUR : <strong id="currentPlayerNameScrabble" class="text-white text-xl ml-2 uppercase tracking-wide">--</strong></div>
+                    <div class="flex space-x-4 items-center">
+                        <button onclick="toggleMic()" id="micBtnScrabble" class="text-white hover:text-red-400 text-4xl p-3 rounded-full drop-shadow-md transition-all duration-300 flex items-center justify-center w-16 h-16"><i class="fa-solid fa-microphone"></i></button>
+                        <button onclick="undo()" class="undoBtn text-[#ffdead] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-sm font-sans bg-black/40 px-3 py-1 rounded"><i class="fa-solid fa-rotate-left mr-1"></i> Annuler</button>
+                    </div>
                 </div>
                 
-                <h2 class="text-2xl font-bold mb-6">Ajouter des joueurs</h2>
-                
-                <div id="players-list" class="space-y-2 mb-6">
-                    <!-- Dynamique -->
-                </div>
-                
-                <div class="bg-slate-800 p-4 rounded-lg mb-6">
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-1">Pseudo</label>
-                            <input type="text" id="player-name-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" placeholder="Nom">
+                <!-- Numpad Scrabble -->
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="col-span-3 grid grid-cols-3 gap-2">
+                        <button onclick="appendScrabble(1)" class="btn-tile text-2xl py-3">1</button>
+                        <button onclick="appendScrabble(2)" class="btn-tile text-2xl py-3">2</button>
+                        <button onclick="appendScrabble(3)" class="btn-tile text-2xl py-3">3</button>
+                        <button onclick="appendScrabble(4)" class="btn-tile text-2xl py-3">4</button>
+                        <button onclick="appendScrabble(5)" class="btn-tile text-2xl py-3">5</button>
+                        <button onclick="appendScrabble(6)" class="btn-tile text-2xl py-3">6</button>
+                        <button onclick="appendScrabble(7)" class="btn-tile text-2xl py-3">7</button>
+                        <button onclick="appendScrabble(8)" class="btn-tile text-2xl py-3">8</button>
+                        <button onclick="appendScrabble(9)" class="btn-tile text-2xl py-3">9</button>
+                        <button onclick="appendScrabble(0)" class="btn-tile text-2xl py-3 col-span-2">0</button>
+                        <button onclick="clearScrabble()" class="btn-tile text-lg py-3" style="background: #e5e7eb; color: #1f2937; border-color: #d1d5db;"><i class="fa-solid fa-delete-left"></i></button>
+                    </div>
+                    <div class="col-span-1 flex flex-col gap-2">
+                        <div class="bg-black/80 rounded-lg flex-1 flex items-center justify-center border-2 border-[#5c2e0e] shadow-inner text-white font-mono text-3xl overflow-hidden px-2">
+                            <span id="scrabbleBufferDisplay">0</span>
                         </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-2">Couleur</label>
-                            <input type="color" id="player-color-input" class="w-10 h-10 rounded border-2 border-slate-600 cursor-pointer" value="#3b82f6">
-                        </div>
-                        
-                        <button onclick="addPlayer()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-3 rounded-lg transition-colors text-sm">
-                            <i class="fas fa-plus"></i> Ajouter
+                        <button onclick="validateScrabble()" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xl rounded-lg py-6 shadow-md border border-green-700 transition-colors h-full flex-1">
+                            <i class="fa-solid fa-check"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="flex gap-3 max-w-md mx-auto w-full px-4">
-            <button onclick="showScreen('init')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                Annuler
-            </button>
-            <button onclick="startGameSetup()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                Continuer
-            </button>
-        </div>
     </div>
 
-    <!-- ÉCRAN 5: Sélectionner un jeu -->
-    <div id="screen-select-game" class="screen flex flex-col items-center justify-center bg-slate-900 p-4">
-        <div class="max-w-md text-center w-full">
-            <h2 class="text-2xl font-bold mb-8">Sélectionner un jeu</h2>
-            
-            <button onclick="startGame('10000')" class="w-full bg-gradient-to-br from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold py-6 px-4 rounded-lg transition-colors mb-4">
-                <div class="text-3xl mb-2">🎲</div>
-                <div class="text-xl">Le 10 000</div>
-                <div class="text-xs text-blue-100 mt-2">Classique à dés</div>
-            </button>
-            
-            <button disabled class="w-full bg-slate-700 text-slate-500 font-bold py-6 px-4 rounded-lg opacity-50 mb-4">
-                <div class="text-3xl mb-2">📝</div>
-                <div class="text-xl">Scrabble</div>
-                <div class="text-xs mt-2">Bientôt disponible</div>
-            </button>
-            
-            <button onclick="showScreen('add-players')" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                <i class="fas fa-arrow-left"></i> Retour
-            </button>
-        </div>
+    <!-- Speech Toast -->
+    <div id="speechToast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-black/80 text-yellow-400 px-6 py-3 rounded-full opacity-0 transition-opacity duration-300 pointer-events-none z-50 font-bold border border-yellow-500/50 shadow-xl">
+        J'écoute...
     </div>
 
-    <!-- ÉCRAN 6: Partie en cours (Le 10 000) -->
-    <div id="screen-game-10000" class="screen flex flex-col bg-slate-900">
-        <!-- En-tête -->
-        <div class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex justify-between items-center">
-            <div>
-                <p class="text-xs text-slate-400">Groupe: <span id="game-group-name">-</span></p>
-                <p class="text-sm font-semibold" id="game-code">-</p>
-            </div>
-            <div class="text-right">
-                <p class="text-xs text-slate-400">Tour: <span id="turn-count">1</span></p>
-                <p class="text-sm font-semibold"><i id="sync-indicator" class="fas fa-laptop"></i> <span id="sync-status">Local</span></p>
-            </div>
-        </div>
-
-        <!-- Zone de jeu -->
-        <div class="flex-1 overflow-y-auto px-4 py-4">
-            
-            <!-- Score du joueur actif -->
-            <div class="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl p-6 mb-6 text-center border-2 border-sky-500">
-                <p class="text-slate-400 text-sm mb-2">JOUEUR ACTIF</p>
-                <div class="flex items-center justify-center gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-full" id="active-player-color" style="background: #3b82f6;"></div>
-                    <h2 id="active-player-name" class="text-2xl font-bold">-</h2>
-                </div>
-                <div class="text-5xl font-extrabold mb-2" id="active-player-score">0</div>
-                <div class="text-xs text-slate-400">/ 10 000</div>
-            </div>
-
-            <!-- Mini scores des autres joueurs -->
-            <div id="other-players-list" class="space-y-2 mb-6">
-                <!-- Dynamique -->
-            </div>
-
-            <!-- Historique -->
-            <div class="bg-slate-800 rounded-lg p-4">
-                <p class="text-xs text-slate-400 mb-2">HISTORIQUE DU TOUR</p>
-                <div id="turn-history" class="space-y-1">
-                    <!-- Dynamique -->
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Contrôles -->
-        <div class="bg-slate-800 border-t border-slate-700 px-4 py-4">
-            
-            <!-- Boutons rapides -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <button onclick="addScore(100)" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
-                    +100
-                </button>
-                <button onclick="addScore(150)" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
-                    +150
-                </button>
-                <button onclick="addScore(200)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
-                    +200
-                </button>
-                <button onclick="addScore(300)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-lg transition-colors active:scale-95">
-                    +300
-                </button>
-            </div>
-
-            <!-- Contrôles secondaires -->
-            <div class="grid grid-cols-4 gap-2 mb-3">
-                <button id="mic-btn" onclick="toggleMicrophone()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Micro">
-                    <i class="fas fa-microphone"></i>
-                </button>
-                <button onclick="undoScore()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Annuler">
-                    <i class="fas fa-undo"></i>
-                </button>
-                <button onclick="editLastScore()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Éditer">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button onclick="nextPlayer()" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition-colors active:scale-95" title="Suivant">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- Speech feedback -->
-            <div id="speech-feedback" class="text-center text-slate-400 text-sm h-5">
-                <!-- Dynamique -->
-            </div>
-        </div>
-
-    </div>
-
-    <!-- MODAL: Éditer score -->
-    <div id="modal-edit-score" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-slate-800 p-6 rounded-2xl max-w-sm w-full mx-4">
-            <h3 class="text-xl font-bold mb-4">Éditer le score</h3>
-            <input type="number" id="edit-score-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white text-center text-2xl mb-4" value="0">
-            <div class="flex gap-3">
-                <button onclick="closeModal('edit-score')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Annuler
-                </button>
-                <button onclick="saveEditedScore()" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Valider
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast container -->
-    <div id="toast-container"></div>
-
-    <!-- SCRIPTS -->
     <script>
-        // ============================================
-        // CONFIGURATION ET ÉTAT
-        // ============================================
-        const CONFIG = {
-            MAX_SCORE: 10000,
-            SUPABASE_URL: 'https://rcrxxlaeogpqjtymdwbk.supabase.co',
-            SUPABASE_KEY: 'sb_publishable_-TuEudsh-RRhqW2QGwfKnA_AdlPymiy',
-        };
+        // --- STATE ---
+        let gameMode = "menu"; // "menu", "10000", "scrabble"
+        let players = [];
+        let currentTurn = 0;
+        let history = []; 
+        let scrabbleBuffer = "";
 
-        let appState = {
-            supabase: null,
-            currentGroup: null,
-            currentGame: null,
-            currentPlayers: [],
-            currentScores: {},
-            currentPlayerIndex: 0,
-            turnNumber: 1,
-            gameType: 'local',
-            recognition: null,
-            isListening: false
-        };
-
-        // ============================================
-        // FONCTIONS UI
-        // ============================================
-
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active', 'screen-enter');
-            });
+        // --- WEBSOCKET SYNC ---
+        let ws;
+        function connectWebSocket() {
+            if (window.location.protocol === 'file:') return;
+            // Ne pas tenter de connexion WebSocket sur GitHub Pages
+            if (window.location.hostname.endsWith('github.io')) {
+                console.log("Synchronisation WebSocket désactivée sur GitHub Pages (mode hors-ligne uniquement).");
+                return;
+            }
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
             
-            const screen = document.getElementById(`screen-${screenId}`);
-            if (screen) {
-                screen.classList.add('active', 'screen-enter');
-            }
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === "sync" && msg.data) {
+                    const oldMode = gameMode;
+                    gameMode = msg.data.gameMode || "menu";
+                    players = msg.data.players || [];
+                    currentTurn = msg.data.currentTurn || 0;
+                    
+                    if (oldMode !== gameMode) {
+                        applyGameModeView();
+                    }
+                    render();
+                }
+            };
             
-            const container = document.getElementById('toast-container');
-            container.appendChild(toast);
+            ws.onclose = () => {
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function broadcastState() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: "update", data: {gameMode, players, currentTurn}}));
+            }
+        }
+
+        // --- GAME MODE ---
+        function setGameMode(mode) {
+            gameMode = mode;
+            broadcastState();
+            applyGameModeView();
+            render();
+        }
+
+        function applyGameModeView() {
+            document.getElementById('view-menu').classList.add('hidden-view');
+            document.getElementById('view-10000').classList.add('hidden-view');
+            document.getElementById('view-scrabble').classList.add('hidden-view');
             
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        function openModal(modalId) {
-            document.getElementById(`modal-${modalId}`).classList.remove('hidden');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(`modal-${modalId}`).classList.add('hidden');
-        }
-
-        // ============================================
-        // GESTION DES GROUPES
-        // ============================================
-
-        function createGroup() {
-            const name = document.getElementById('group-name-input').value.trim();
-            if (!name) {
-                showToast('Veuillez entrer un nom', 'error');
-                return;
+            if (gameMode === '10000') {
+                document.getElementById('view-10000').classList.remove('hidden-view');
+                document.body.style.background = "#111";
+            } else if (gameMode === 'scrabble') {
+                document.getElementById('view-scrabble').classList.remove('hidden-view');
+                document.body.style.background = "#2c1e16"; // Dark brown for scrabble bg
+            } else {
+                document.getElementById('view-menu').classList.remove('hidden-view');
+                document.body.style.background = "#111";
             }
-
-            appState.currentGroup = {
-                id: Math.random().toString(36).substr(2, 9),
-                name: name,
-                code: Math.random().toString(36).substr(2, 6).toUpperCase()
-            };
-
-            showToast(`Groupe "${name}" créé !`, 'success');
-            showScreen('add-players');
-        }
-
-        function joinGroup() {
-            const code = document.getElementById('invite-code-input').value.trim().toUpperCase();
-            if (!code || code.length < 6) {
-                showToast('Code invalide', 'error');
-                return;
-            }
-
-            appState.currentGroup = {
-                id: Math.random().toString(36).substr(2, 9),
-                name: 'Groupe (rejoint)',
-                code: code
-            };
-
-            showToast('Groupe rejoint !', 'success');
-            showScreen('add-players');
-        }
-
-        function startLocalGame() {
-            appState.gameType = 'local';
-            appState.currentGroup = {
-                id: 'local',
-                name: 'Partie locale',
-                code: 'LOCAL'
-            };
-            showScreen('add-players');
-        }
-
-        // ============================================
-        // GESTION DES JOUEURS
-        // ============================================
-
-        function addPlayer() {
-            const name = document.getElementById('player-name-input').value.trim();
-            const color = document.getElementById('player-color-input').value;
-
-            if (!name) {
-                showToast('Veuillez entrer un pseudo', 'error');
-                return;
-            }
-
-            if (appState.currentPlayers.length >= 10) {
-                showToast('Maximum 10 joueurs', 'error');
-                return;
-            }
-
-            const player = {
-                id: Math.random().toString(36).substr(2, 9),
-                name: name,
-                color: color
-            };
-
-            appState.currentPlayers.push(player);
-            document.getElementById('player-name-input').value = '';
-            renderPlayersList();
-            showToast(`${name} ajouté !`, 'success');
-        }
-
-        function removePlayer(playerId) {
-            appState.currentPlayers = appState.currentPlayers.filter(p => p.id !== playerId);
-            renderPlayersList();
-            showToast('Joueur supprimé', 'success');
-        }
-
-        function renderPlayersList() {
-            const list = document.getElementById('players-list');
-            list.innerHTML = appState.currentPlayers.map(player => `
-                <div class="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full" style="background: ${player.color};"></div>
-                        <span class="font-semibold">${player.name}</span>
-                    </div>
-                    <button onclick="removePlayer('${player.id}')" class="text-slate-400 hover:text-red-500 transition-colors">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function startGameSetup() {
-            if (appState.currentPlayers.length < 2) {
-                showToast('Minimum 2 joueurs requis', 'error');
-                return;
-            }
-
-            showScreen('select-game');
-        }
-
-        // ============================================
-        // GESTION DE LA PARTIE
-        // ============================================
-
-        function startGame(gameType) {
-            appState.currentGame = {
-                id: Math.random().toString(36).substr(2, 9),
-                type: gameType,
-                status: 'active',
-                startTime: Date.now()
-            };
-
-            appState.currentScores = {};
-            appState.currentPlayers.forEach(player => {
-                appState.currentScores[player.id] = {
-                    total: 0,
-                    turnTotal: 0,
-                    history: [],
-                    turnHistory: []
-                };
-            });
-
-            appState.currentPlayerIndex = 0;
-            appState.turnNumber = 1;
-
-            initSpeechRecognition();
-            showScreen('game-10000');
-            updateGameUI();
-        }
-
-        function updateGameUI() {
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            if (!currentPlayer) return;
-
-            const scores = appState.currentScores[currentPlayer.id];
-
-            document.getElementById('game-group-name').textContent = appState.currentGroup.name;
-            document.getElementById('game-code').textContent = appState.currentGroup.code || 'LOCAL';
-            document.getElementById('turn-count').textContent = appState.turnNumber;
             
-            document.getElementById('active-player-name').textContent = currentPlayer.name;
-            document.getElementById('active-player-color').style.background = currentPlayer.color;
-            document.getElementById('active-player-score').textContent = scores.total.toLocaleString('fr-FR');
-
-            renderOtherPlayers();
-            renderTurnHistory();
-            updateSyncStatus();
+            stopMic(); // Stop mic when changing view
+            document.documentElement.style.themeColor = gameMode === '10000' ? '#1b5e20' : gameMode === 'scrabble' ? '#8b4513' : '#111';
         }
 
-        function renderOtherPlayers() {
-            const list = document.getElementById('other-players-list');
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
+        // --- MICROPHONE LOGIC ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isListening = false;
 
-            list.innerHTML = appState.currentPlayers
-                .filter(p => p.id !== currentPlayer.id)
-                .map(player => {
-                    const scores = appState.currentScores[player.id];
-                    return `
-                        <div class="bg-slate-700 rounded-lg p-3 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full" style="background: ${player.color};"></div>
-                                <span class="font-semibold text-sm">${player.name}</span>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-bold">${scores.total}</p>
-                                <p class="text-xs text-slate-400">/ 10k</p>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                const score = parseFrenchNumber(transcript);
+                showToast(`🗣️ "${transcript}" -> ${score !== null ? '+'+score : '?'}`);
+                
+                if (score !== null) {
+                    addScore(score);
+                    stopMic();
+                }
+            };
+
+            recognition.onend = () => {
+                if (isListening) recognition.start();
+            };
         }
 
-        function renderTurnHistory() {
-            const history = document.getElementById('turn-history');
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            const scores = appState.currentScores[currentPlayer.id];
+        function stopMic() {
+            isListening = false;
+            document.getElementById('micBtn10000').classList.remove('mic-active');
+            document.getElementById('micBtnScrabble').classList.remove('mic-active');
+            if (recognition) recognition.stop();
+        }
 
-            history.innerHTML = scores.turnHistory.length > 0
-                ? scores.turnHistory.map((score, idx) => `
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-slate-400">Action ${idx + 1}</span>
-                        <span class="font-bold">+${score}</span>
-                    </div>
-                `).join('')
-                : '<p class="text-slate-500 text-sm italic">Aucun point pour ce tour</p>';
+        function toggleMic() {
+            if (!recognition) return alert("Micro non supporté par ce navigateur.");
+            if (isListening) {
+                stopMic();
+            } else {
+                isListening = true;
+                if(gameMode === '10000') document.getElementById('micBtn10000').classList.add('mic-active');
+                if(gameMode === 'scrabble') document.getElementById('micBtnScrabble').classList.add('mic-active');
+                recognition.start();
+                showToast('J\'écoute...');
+            }
+        }
+
+        function showToast(msg, duration = 2000) {
+            const toast = document.getElementById('speechToast');
+            toast.innerText = msg;
+            toast.style.opacity = 1;
+            setTimeout(() => toast.style.opacity = 0, duration);
+        }
+
+        function parseFrenchNumber(text) {
+            // Extraction directe des chiffres (ex: "32" reconnu nativement)
+            const digits = text.replace(/[^0-9]/g, '');
+            if (digits) return parseInt(digits, 10);
+            
+            // Mapping de mots pour le 10000
+            const map = {
+                "cinquante": 50, "cent": 100, "cent cinquante": 150,
+                "deux cents": 200, "deux cent": 200,
+                "deux cent cinquante": 250, "trois cents": 300, "trois cent": 300,
+                "trois cent cinquante": 350, "quatre cents": 400, "quatre cent": 400,
+                "cinq cents": 500, "cinq cent": 500,
+                "mille": 1000, "zéro": 0,
+                "un": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6, "sept": 7, "huit": 8, "neuf": 9, "dix": 10,
+                "onze": 11, "douze": 12, "treize": 13, "quatorze": 14, "quinze": 15, "seize": 16, "vingt": 20, "trente": 30, "quarante": 40
+            };
+            
+            // Cherche le plus grand nombre correspondant
+            let maxVal = null;
+            for (const [word, val] of Object.entries(map)) {
+                if (text.includes(word)) {
+                    if (maxVal === null || val > maxVal) maxVal = val;
+                }
+            }
+            return maxVal;
+        }
+
+        // --- SCRABBLE NUMPAD ---
+        function appendScrabble(digit) {
+            if (scrabbleBuffer.length < 4) {
+                scrabbleBuffer += digit;
+                updateScrabbleDisplay();
+            }
+        }
+        
+        function clearScrabble() {
+            scrabbleBuffer = "";
+            updateScrabbleDisplay();
+        }
+        
+        function updateScrabbleDisplay() {
+            document.getElementById('scrabbleBufferDisplay').innerText = scrabbleBuffer || "0";
+        }
+        
+        function validateScrabble() {
+            const score = parseInt(scrabbleBuffer);
+            if (!isNaN(score) && score > 0) {
+                addScore(score);
+            }
+            clearScrabble();
+        }
+
+        // --- GAME LOGIC ---
+        function addPlayer(mode) {
+            const inputId = mode === '10000' ? 'newPlayerName10000' : 'newPlayerNameScrabble';
+            const input = document.getElementById(inputId);
+            const name = input.value.trim();
+            if (name) {
+                players.push({ id: Date.now(), name: name, score: 0 });
+                input.value = '';
+                broadcastState();
+                render();
+            }
+        }
+
+        function removePlayer(id) {
+            if(confirm("Supprimer ce joueur ?")) {
+                players = players.filter(p => p.id !== id);
+                if(currentTurn >= players.length) currentTurn = 0;
+                broadcastState();
+                render();
+            }
+        }
+
+        function setTurn(index) {
+            currentTurn = index;
+            broadcastState();
+            render();
         }
 
         function addScore(points) {
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            const scores = appState.currentScores[currentPlayer.id];
+            if (players.length === 0) return;
+            
+            history.push(JSON.stringify({gameMode, players, currentTurn}));
+            if(history.length > 20) history.shift();
+            
+            players[currentTurn].score += points;
+            
+            if (gameMode === '10000' && players[currentTurn].score >= 10000) {
+                setTimeout(() => alert(`🎉 VICTOIRE DE ${players[currentTurn].name.toUpperCase()} ! 🎉`), 100);
+            }
+            
+            currentTurn = (currentTurn + 1) % players.length;
+            
+            broadcastState();
+            render();
+        }
 
-            scores.turnHistory.push(points);
-            scores.turnTotal = scores.turnHistory.reduce((a, b) => a + b, 0);
-
-            updateGameUI();
-
-            const scoreDisplay = document.getElementById('active-player-score');
-            scoreDisplay.classList.add('score-bump');
-            setTimeout(() => scoreDisplay.classList.remove('score-bump'), 400);
-
-            if (scores.turnTotal >= 50) {
-                setTimeout(() => endTurn(), 1500);
+        function undo() {
+            if (history.length > 0) {
+                const prevState = JSON.parse(history.pop());
+                gameMode = prevState.gameMode || gameMode;
+                players = prevState.players;
+                currentTurn = prevState.currentTurn;
+                
+                applyGameModeView();
+                broadcastState();
+                render();
             }
         }
 
-        function endTurn() {
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            const scores = appState.currentScores[currentPlayer.id];
+        function clearPlayers() {
+            if (confirm("RAZ : Supprimer TOUS les joueurs de la table ?")) {
+                players = [];
+                history = [];
+                currentTurn = 0;
+                broadcastState();
+                render();
+            }
+        }
 
-            scores.total += scores.turnTotal;
-            scores.history.push({
-                turn: appState.turnNumber,
-                score: scores.turnTotal,
-                timestamp: Date.now()
+        function resetScores() {
+            if (confirm("Fin de partie : Remettre tous les scores à zéro pour rejouer avec les mêmes joueurs ?")) {
+                history.push(JSON.stringify({gameMode, players, currentTurn}));
+                players.forEach(p => p.score = 0);
+                currentTurn = 0;
+                broadcastState();
+                render();
+            }
+        }
+
+        // --- UI ---
+        function render() {
+            if (gameMode === '10000') renderPlayersList('playersList10000', 'active-player-10000', 'text-white', 'text-green-600');
+            else if (gameMode === 'scrabble') renderPlayersList('playersListScrabble', 'active-player-scrabble', 'text-[#3e2723]', 'text-[#8b4513]');
+
+            const curName = players.length > 0 && players[currentTurn] ? players[currentTurn].name : '--';
+            document.getElementById('currentPlayerName10000').innerText = curName;
+            document.getElementById('currentPlayerNameScrabble').innerText = curName;
+            
+            document.querySelectorAll('.undoBtn').forEach(btn => btn.disabled = history.length === 0);
+        }
+
+        function renderPlayersList(containerId, activeClass, normalTextColor, indexColor) {
+            const list = document.getElementById(containerId);
+            if (!list) return;
+            list.innerHTML = '';
+            
+            players.forEach((p, i) => {
+                const isActive = i === currentTurn;
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center ${gameMode==='scrabble' ? 'bg-[#ffdead]/80' : 'bg-black/60'} p-4 rounded-xl border-2 transition cursor-pointer ${isActive ? activeClass : 'border-transparent'}`;
+                div.onclick = (e) => {
+                    if(!e.target.closest('button')) setTurn(i);
+                };
+                
+                const scoreColorClass = gameMode === '10000' && p.score >= 10000 ? 'text-red-500' : (gameMode==='scrabble' ? 'text-[#5c2e0e]' : 'text-white');
+                const nameColorClass = isActive && gameMode==='10000' ? 'gold-text' : (isActive && gameMode==='scrabble' ? 'text-[#8b4513]' : normalTextColor);
+                const playIconColor = gameMode === 'scrabble' ? 'text-[#8b4513]' : 'text-yellow-400';
+
+                div.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="${isActive ? playIconColor : indexColor} w-6 text-center font-bold text-xl">
+                            ${isActive ? '<i class="fa-solid fa-play"></i>' : (i+1)}
+                        </div>
+                        <div>
+                            <div class="font-bold text-xl ${nameColorClass}">${p.name}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>
+                        <button onclick="removePlayer(${p.id})" class="${gameMode==='scrabble' ? 'text-[#8b4513]/50 hover:text-red-600' : 'text-white/30 hover:text-red-400'} p-2"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                `;
+                list.appendChild(div);
             });
-
-            scores.turnHistory = [];
-            scores.turnTotal = 0;
-
-            if (scores.total >= CONFIG.MAX_SCORE) {
-                triggerVictory(currentPlayer);
-                return;
-            }
-
-            nextPlayer();
         }
 
-        function nextPlayer() {
-            appState.currentPlayerIndex = (appState.currentPlayerIndex + 1) % appState.currentPlayers.length;
-            
-            if (appState.currentPlayerIndex === 0) {
-                appState.turnNumber++;
-            }
+        // --- INIT ---
+        applyGameModeView();
+        connectWebSocket();
+        if(players.length === 0) players = [{ id: 1, name: "Joueur 1", score: 0 }];
+        render();
 
-            updateGameUI();
+        // --- PWA SERVICE WORKER ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
         }
-
-        function undoScore() {
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            const scores = appState.currentScores[currentPlayer.id];
-
-            if (scores.turnHistory.length > 0) {
-                scores.turnHistory.pop();
-                scores.turnTotal = scores.turnHistory.reduce((a, b) => a + b, 0);
-                updateGameUI();
-                showToast('Score annulé', 'success');
-            }
-        }
-
-        function editLastScore() {
-            openModal('edit-score');
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            const scores = appState.currentScores[currentPlayer.id];
-            const lastScore = scores.turnHistory[scores.turnHistory.length - 1] || 0;
-            document.getElementById('edit-score-input').value = lastScore;
-        }
-
-        function saveEditedScore() {
-            const newScore = parseInt(document.getElementById('edit-score-input').value, 10);
-            if (isNaN(newScore) || newScore < 0) {
-                showToast('Score invalide', 'error');
-                return;
-            }
-
-            const currentPlayer = appState.currentPlayers[appState.currentPlayerIndex];
-            const scores = appState.currentScores[currentPlayer.id];
-
-            if (scores.turnHistory.length > 0) {
-                scores.turnHistory[scores.turnHistory.length - 1] = newScore;
-                scores.turnTotal = scores.turnHistory.reduce((a, b) => a + b, 0);
-            }
-
-            closeModal('edit-score');
-            updateGameUI();
-            showToast('Score modifié', 'success');
-        }
-
-        function triggerVictory(player) {
-            showToast(`🎉 ${player.name} a gagné !`, 'success');
-            
-            const scoreDisplay = document.getElementById('active-player-score');
-            scoreDisplay.classList.add('victory-pulse');
-
-            setTimeout(() => {
-                if (confirm(`${player.name} a gagné ! Fin de partie ?`)) {
-                    endGame();
-                }
-            }, 5000);
-        }
-
-        function endGame() {
-            showScreen('init');
-            appState.currentPlayers = [];
-            appState.currentScores = {};
-        }
-
-        // ============================================
-        // RECONNAISSANCE VOCALE
-        // ============================================
-
-        function initSpeechRecognition() {
-            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!window.SpeechRecognition) {
-                console.warn("Web Speech API non supportée");
-                return;
-            }
-
-            appState.recognition = new window.SpeechRecognition();
-            appState.recognition.lang = 'fr-FR';
-            appState.recognition.continuous = false;
-            appState.recognition.interimResults = false;
-
-            appState.recognition.onstart = () => {
-                appState.isListening = true;
-                document.getElementById('mic-btn').classList.add('mic-listening');
-                document.getElementById('speech-feedback').textContent = "J'écoute...";
-            };
-
-            appState.recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript.toLowerCase();
-                processSpeechInput(transcript);
-            };
-
-            appState.recognition.onend = () => {
-                appState.isListening = false;
-                document.getElementById('mic-btn').classList.remove('mic-listening');
-            };
-
-            appState.recognition.onerror = (event) => {
-                console.error("Erreur vocale:", event.error);
-                document.getElementById('speech-feedback').textContent = "Erreur: " + event.error;
-            };
-        }
-
-        function toggleMicrophone() {
-            if (!appState.recognition) return;
-
-            if (appState.isListening) {
-                appState.recognition.stop();
-            } else {
-                appState.recognition.start();
-            }
-        }
-
-        function processSpeechInput(text) {
-            const numberMap = {
-                "cent": 100, "centime": 100,
-                "cent-cinquante": 150, "cent cinquante": 150,
-                "deux-cents": 200, "deux cents": 200,
-                "trois-cents": 300, "trois cents": 300,
-                "quatre-cents": 400, "quatre cents": 400,
-                "cinq-cents": 500, "cinq cents": 500,
-            };
-
-            let score = 0;
-            const numbers = text.match(/\d+/g);
-            if (numbers) {
-                score = parseInt(numbers[0], 10);
-            } else {
-                for (const [word, value] of Object.entries(numberMap)) {
-                    if (text.includes(word)) {
-                        score = value;
-                        break;
-                    }
-                }
-            }
-
-            if (score > 0) {
-                document.getElementById('speech-feedback').textContent = `+${score} reconnu !`;
-                addScore(score);
-            } else {
-                document.getElementById('speech-feedback').textContent = "Non reconnu";
-            }
-        }
-
-        function updateSyncStatus() {
-            const indicator = document.getElementById('sync-indicator');
-            const statusText = document.getElementById('sync-status');
-
-            if (appState.gameType === 'online') {
-                indicator.className = 'fas fa-cloud text-green-500';
-                statusText.textContent = 'En ligne';
-            } else {
-                indicator.className = 'fas fa-laptop text-slate-400';
-                statusText.textContent = 'Local';
-            }
-        }
-
-        // ============================================
-        // INITIALISATION
-        // ============================================
-
-        window.addEventListener('load', () => {
-            if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && window.supabase) {
-                appState.supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-                document.getElementById('supa-status').textContent = 'Prêt (Connecté à Supabase)';
-                appState.gameType = 'online';
-                updateSyncStatus();
-            } else {
-                document.getElementById('supa-status').textContent = 'Prêt (mode démo)';
-            }
-        });
-
-        document.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) {
-                e.preventDefault();
-            }
-        }, false);
     </script>
-
 </body>
 </html>
