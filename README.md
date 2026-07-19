@@ -6,21 +6,21 @@ Application web progressive pour le comptage multi-joueurs temps réel, avec sup
 
 ## ✨ Fonctionnalités principales
 
-### Multi-Joueurs & Groupes 👥
-- ✅ **Gestion multi-joueurs** - Jusqu'à 10 joueurs par table de jeu
-- ✅ **Rivalités (Groupes Sauvegardés)** - Créez et nommez des groupes de joueurs réguliers (ex: "La Famille", "Les Parents") pour configurer la table de jeu en un clic
+### Multi-Joueurs, Groupes & Roulette 👥🎡
+- ✅ **Gestion multi-joueurs** - Jusqu'à 10 joueurs pour Le 10 000/Scrabble, et limité à 6 pour les Dames Chinoises
+- ✅ **Roulette "Qui commence"** - Tirage au sort animé avec décélération visuelle pour désigner le premier joueur
+- ✅ **Rivalités (Groupes Sauvegardés)** - Créez et nommez des groupes de joueurs réguliers pour configurer la table de jeu en un clic (limité à 6 max pour les Dames Chinoises)
 - ✅ **Réorganisation à la volée** - Modifiez l'ordre de passage des joueurs à tout moment via des boutons de déplacement (Haut/Bas)
-- ✅ **Compteurs séparés & Persistance** - Sauvegarde distincte automatique de la partie en cours pour le Scrabble et le 10 000 dans le stockage du navigateur (`localStorage`)
+- ✅ **Compteurs séparés & Persistance** - Sauvegarde distincte automatique de la partie en cours pour chaque jeu (Scrabble, 10 000, Dames Chinoises) dans le stockage du navigateur (`localStorage`) et Supabase.
 
-### Gameplay & Suivi des scores 🎲
-- ✅ **Boutons rapides** - Boutons de points préconfigurés (Le 10 000) ou pavé numérique avec historique interactif (Scrabble)
-- ✅ **Reconnaissance vocale** - Saisie vocale des points en français
-- ✅ **Historique par joueur (Long-clic)** - Maintenez le clic sur un joueur (ou cliquez sur le bouton Horloge) pour consulter, éditer ou supprimer les points saisis à chacun de ses tours
-- ✅ **Statistiques Ciblées** - Onglets de statistiques séparés par jeu avec filtre de rivalité pour n'analyser que les performances (victoires, points cumulés, moyenne) des parties disputées par le groupe sélectionné
+### Jeux Supportés 🎮
+- ✅ **Le 10 000** : Compteur aux multiples de 50 avec boutons rapides.
+- ✅ **Scrabble** : Compteur libre avec pavé numérique dédié.
+- ✅ **Dames Chinoises** : Pas de score actif pendant la partie. Podium final (1er à Nème) avec saisie du nombre de billes restantes pour chaque perdant.
 
-### Technologie 🔧
-- ✅ **Mode offline-first robuste** - Le Service Worker met en cache l'ensemble des fichiers requis (y compris Tailwind et les icônes FontAwesome) pour un fonctionnement 100% autonome sans Internet
-- ✅ **Synchronisation WebSocket** - Synchronisation automatique multi-écrans lors d'un lancement local via le serveur FastAPI (Python)
+### Statistiques & Dashboard Unifié 📈
+- ✅ **Dashboard 3 Panneaux** : Affichage simultané des statistiques des 3 jeux côte-à-côte sous un sélecteur global de rivalité.
+- ✅ **Filtre de Rivalité intelligent** : Analyse des confrontations directes d'un groupe de joueurs réguliers avec répartition des médailles (Or, Argent, Bronze) et moyenne des billes restantes pour les Dames Chinoises.
 
 ## 🚀 Déploiement sur GitHub Pages
 

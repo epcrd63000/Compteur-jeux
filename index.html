@@ -40,13 +40,19 @@
         .mic-active { animation: pulse-recording 1.5s infinite; color: white !important; background-color: #ef4444; }
         @keyframes pulse-recording { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); } 70% { transform: scale(1.15); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
+        /* Thème Dames Chinoises */
+        .chinese-checkers-table { background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); border: 16px solid #312e81; border-radius: 24px; box-shadow: inset 0 0 35px rgba(0,0,0,0.9), 0 10px 30px rgba(0,0,0,0.6); position: relative; }
+        .wood-border-dame { background: repeating-linear-gradient(45deg, #3730a3, #312e81 10px, #1e1b4b 20px); padding: 12px; border-radius: 32px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .active-player-dame { border-color: #ffd700 !important; background-color: rgba(99, 102, 241, 0.2); box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
+
         /* Ajustements de Responsivité (Mobile) */
         @media (max-width: 640px) {
-            .billiard-table, .scrabble-table {
+            .billiard-table, .scrabble-table, .chinese-checkers-table {
                 border-width: 8px !important;
                 padding: 1rem !important;
             }
-            .wood-border, .wood-border-scrabble {
+            .wood-border, .wood-border-scrabble, .wood-border-dame {
                 padding: 6px !important;
             }
         }
@@ -82,7 +88,7 @@
             </button>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
             <button onclick="setGameMode('10000')" class="menu-btn bg-gradient-to-br from-green-800 to-green-900 border-4 border-yellow-600 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4">
                 <i class="fa-solid fa-dice text-6xl text-white"></i>
                 <h2 class="text-3xl font-bold text-yellow-400">Le 10 000</h2>
@@ -95,21 +101,27 @@
                 <p class="text-[#e6c280] text-sm font-sans">Compteur libre avec pavé numérique</p>
             </button>
 
-            <button onclick="setGameMode('stats')" class="menu-btn bg-gradient-to-br from-slate-800 to-slate-900 border-4 border-slate-600 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4 md:col-span-2">
+            <button onclick="setGameMode('dame_chinoise')" class="menu-btn bg-gradient-to-br from-indigo-800 to-indigo-950 border-4 border-indigo-500 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4">
+                <i class="fa-solid fa-star text-6xl text-white"></i>
+                <h2 class="text-3xl font-bold text-indigo-300">Dame Chinoise</h2>
+                <p class="text-indigo-200 text-sm font-sans">Podium de classement (2-6 joueurs)</p>
+            </button>
+
+            <button onclick="setGameMode('stats')" class="menu-btn bg-gradient-to-br from-slate-800 to-slate-900 border-4 border-slate-600 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4 md:col-span-3">
                 <i class="fa-solid fa-chart-line text-6xl text-white"></i>
-                <h2 class="text-3xl font-bold text-slate-300">Statistiques & Rivalités</h2>
+                <h2 class="text-3xl font-bold text-slate-300">Statistiques & Dashboard</h2>
                 <p class="text-slate-400 text-sm font-sans">Leaderboard & confrontations face-à-face</p>
             </button>
         </div>
     </div>
 
     <!-- VIEW: STATS -->
-    <div id="view-stats" class="w-full max-w-2xl mx-auto hidden-view space-y-6">
+    <div id="view-stats" class="w-full max-w-3xl mx-auto hidden-view space-y-6">
         <div class="wood-border" style="background: #2b2b2b; padding: 12px; border-radius: 24px; border: 16px solid #1a1a1a; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
             <div class="bg-black/60 p-4 md:p-6 rounded-xl space-y-6 text-white min-h-[70vh]">
                 <header class="flex justify-between items-center py-2 border-b border-slate-700 pb-4">
-                    <button onclick="setGameMode('menu')" class="text-white bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i> Menu</button>
-                    <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-wider">📈 STATS & RIVALITÉS</h1>
+                    <button onclick="setGameMode('menu')" class="text-white bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm font-bold"><i class="fa-solid fa-arrow-left"></i> Menu</button>
+                    <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-wider">📈 STATS & DASHBOARD</h1>
                     <div class="flex space-x-2">
                         <button onclick="syncData()" id="syncBtnStats" class="text-white hover:text-yellow-400 bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm hidden" title="Forcer la synchronisation en ligne"><i class="fa-solid fa-arrows-rotate"></i></button>
                         <button onclick="openSupabaseModal()" class="text-slate-400 hover:text-white bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm" title="Statut Cloud"><i class="fa-solid fa-cloud" id="cloudStatusIconStats"></i></button>
@@ -117,43 +129,40 @@
                     </div>
                 </header>
 
-                <!-- Onglets de sélection du jeu -->
-                <div class="flex border-b border-slate-700 text-sm font-sans">
-                    <button onclick="setStatsTab('10000')" id="statsTab10000" class="flex-1 py-3 text-center font-bold border-b-2 border-yellow-500 text-yellow-500">Le 10 000</button>
-                    <button onclick="setStatsTab('scrabble')" id="statsTabScrabble" class="flex-1 py-3 text-center font-bold border-b-2 border-transparent text-slate-400 hover:text-white">Scrabble</button>
-                </div>
-
-                <!-- Global Stats Overview -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-800/60 p-4 rounded-xl text-center border border-slate-700/50">
-                        <div class="text-slate-400 text-sm">Parties Jouées</div>
-                        <div id="statsTotalGames" class="text-3xl font-black text-yellow-400 mt-1">0</div>
-                    </div>
-                    <div class="bg-slate-800/60 p-4 rounded-xl text-center border border-slate-700/50">
-                        <div class="text-slate-400 text-sm">Joueurs Uniques</div>
-                        <div id="statsTotalPlayers" class="text-3xl font-black text-green-400 mt-1">0</div>
-                    </div>
-                </div>
-
-                <!-- Leaderboard / Victoires -->
-                <div class="space-y-3">
-                    <h3 class="text-lg font-bold text-yellow-500"><i class="fa-solid fa-trophy mr-2"></i>Tableau des Victoires</h3>
-                    <div id="statsLeaderboard" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        <!-- Rempli par le JS -->
-                    </div>
-                </div>
-
-                <!-- Analyse de la Rivalité -->
-                <div class="space-y-3 border-t border-slate-700 pt-4 font-sans text-sm">
-                    <h3 class="text-lg font-bold text-yellow-500 font-serif"><i class="fa-solid fa-handshake-slash mr-2"></i>Analyse de Rivalités</h3>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-slate-300 whitespace-nowrap">Filtrer par rivalité :</span>
-                        <select id="statsRivalrySelector" onchange="renderRivalry()" class="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white">
+                <!-- Sélecteur Global de Rivalités -->
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50 space-y-3 font-sans">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <span class="text-slate-300 font-bold"><i class="fa-solid fa-handshake-slash mr-2"></i>Sélectionner une Rivalité / Groupe :</span>
+                        <select id="statsRivalrySelector" onchange="renderStatsDashboard()" class="flex-1 md:max-w-md bg-black/50 border border-slate-700 rounded px-3 py-2 text-white">
                             <!-- Options remplies en JS -->
                         </select>
                     </div>
-                    <div id="rivalryResult" class="bg-slate-800/40 p-4 rounded-xl text-center border border-slate-700/50 min-h-[120px] flex flex-col justify-center text-slate-300">
-                        Sélectionnez une rivalité pour analyser ses parties.
+                </div>
+
+                <!-- Les 3 Panneaux de Jeux (Dashboard) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
+                    <!-- Panneau Le 10 000 -->
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50 space-y-4">
+                        <h3 class="text-xl font-bold text-green-400 border-b border-green-950/40 pb-2"><i class="fa-solid fa-dice mr-2"></i>Le 10 000</h3>
+                        <div id="statsPanel10000" class="space-y-3 text-sm">
+                            <!-- JS fill -->
+                        </div>
+                    </div>
+
+                    <!-- Panneau Scrabble -->
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50 space-y-4">
+                        <h3 class="text-xl font-bold text-[#ffdead] border-b border-[#5c2e0e]/40 pb-2"><i class="fa-solid fa-font mr-2"></i>Scrabble</h3>
+                        <div id="statsPanelScrabble" class="space-y-3 text-sm">
+                            <!-- JS fill -->
+                        </div>
+                    </div>
+
+                    <!-- Panneau Dames Chinoises -->
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50 space-y-4">
+                        <h3 class="text-xl font-bold text-indigo-400 border-b border-indigo-950/40 pb-2"><i class="fa-solid fa-star mr-2"></i>Dames Chinoises</h3>
+                        <div id="statsPanelDame" class="space-y-3 text-sm">
+                            <!-- JS fill -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -242,6 +251,7 @@
                         <button onclick="addPlayer('scrabble')" class="bg-[#5c2e0e] hover:bg-[#3e2723] text-white px-4 py-2 rounded font-bold shadow"><i class="fa-solid fa-user-plus"></i></button>
                     </div>
                     <div class="flex space-x-2 w-full md:w-auto">
+                        <button onclick="openRoulette()" class="flex-1 md:flex-none text-yellow-700 hover:text-yellow-950 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Roulette pour décider qui commence"><i class="fa-solid fa-circle-notch mr-1"></i> Roulette</button>
                         <button onclick="resetScores()" class="flex-1 md:flex-none text-blue-700 hover:text-blue-900 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Fin de partie (Scores à 0)"><i class="fa-solid fa-flag-checkered mr-1"></i> Fin de partie</button>
                         <button onclick="clearPlayers()" class="flex-1 md:flex-none text-red-700 hover:text-red-900 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Tout effacer"><i class="fa-solid fa-trash-can mr-1"></i> RAZ</button>
                     </div>
@@ -300,6 +310,46 @@
         </div>
     </div>
 
+    <!-- VIEW: DAME CHINOISE -->
+    <div id="view-dame" class="w-full max-w-2xl mx-auto hidden-view">
+        <div class="wood-border-dame">
+            <div class="chinese-checkers-table p-4 md:p-8 space-y-6 min-h-[70vh]">
+                <header class="flex justify-between items-center py-2 border-b border-indigo-950 pb-4">
+                    <button onclick="setGameMode('menu')" class="text-indigo-200 bg-indigo-900/50 hover:bg-indigo-900 px-3 py-2 rounded text-sm font-bold"><i class="fa-solid fa-arrow-left"></i> Menu</button>
+                    <h1 class="text-2xl md:text-3xl font-bold text-indigo-300 tracking-wider uppercase">Dames Chinoises</h1>
+                    <div class="flex space-x-2">
+                        <button onclick="syncData()" id="syncBtnDame" class="text-indigo-200 hover:text-indigo-100 bg-indigo-900/50 hover:bg-indigo-900 px-3 py-2 rounded text-sm hidden" title="Forcer la synchronisation en ligne"><i class="fa-solid fa-arrows-rotate"></i></button>
+                        <button onclick="openSupabaseModal()" class="text-indigo-200 hover:text-indigo-100 bg-indigo-900/50 hover:bg-indigo-900 px-3 py-2 rounded text-sm" title="Statut Cloud"><i class="fa-solid fa-cloud" id="cloudStatusIconDame"></i></button>
+                    </div>
+                </header>
+
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-indigo-950/30 p-3 rounded-lg border border-indigo-800/30 text-sm font-sans">
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <input type="text" id="newPlayerNameDame" placeholder="Nom du joueur" class="flex-1 md:w-48 bg-black/40 border border-indigo-800/50 rounded px-3 py-2 text-white placeholder-indigo-400 focus:outline-none focus:border-indigo-500 font-sans text-sm">
+                        <button onclick="addPlayer('dame')" class="bg-indigo-900 hover:bg-indigo-800 text-white px-4 py-2 rounded font-bold border border-indigo-700 shadow"><i class="fa-solid fa-user-plus"></i></button>
+                    </div>
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <button onclick="openRoulette()" class="flex-1 md:flex-none text-yellow-400 hover:text-yellow-300 px-3 py-2 text-sm font-bold bg-yellow-950/20 border border-yellow-800/30 rounded" title="Roulette pour décider qui commence"><i class="fa-solid fa-circle-notch mr-1"></i> Roulette</button>
+                        <button onclick="openRankingModal()" class="flex-1 md:flex-none text-green-400 hover:text-green-300 px-3 py-2 text-sm font-bold bg-green-950/20 border border-green-800/30 rounded shadow" title="Fin de partie (Enregistrer le classement)"><i class="fa-solid fa-flag-checkered mr-1"></i> Fin de partie</button>
+                    </div>
+                </div>
+
+                <!-- Gestion des Rivalités / Groupes (Dames Chinoises) -->
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-black/30 p-3 rounded-lg border border-indigo-950/30 text-sm font-sans">
+                    <div class="flex items-center space-x-2 w-full md:w-auto">
+                        <span class="text-slate-300 whitespace-nowrap">Rivalités :</span>
+                        <select id="rivalrySelectDame" onchange="loadRivalryGroup(this.value)" class="flex-1 md:w-48 bg-black/50 border border-indigo-700/50 rounded px-2 py-1 text-white text-sm">
+                            <!-- Options remplies en JS -->
+                        </select>
+                    </div>
+                    <button onclick="saveCurrentGroupAsRivalry()" class="text-yellow-500 hover:text-yellow-400 font-bold bg-black/20 border border-yellow-600/30 px-3 py-1 rounded text-xs flex items-center justify-center"><i class="fa-solid fa-floppy-disk mr-1.5"></i> Sauvegarder ce groupe</button>
+                </div>
+
+                <div id="playersListDame" class="space-y-3 pb-8"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Speech Toast -->
     <div id="speechToast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-black/80 text-yellow-400 px-6 py-3 rounded-full opacity-0 transition-opacity duration-300 pointer-events-none z-50 font-bold border border-yellow-500/50 shadow-xl font-sans">
         J'écoute...
@@ -354,6 +404,52 @@
                 <div class="font-bold text-base">Total : <span id="historyModalTotal" class="text-yellow-400 text-2xl ml-2 font-mono">0</span></div>
                 <button onclick="closeHistoryModal()" class="bg-yellow-600 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold">Fermer</button>
             </footer>
+        </div>
+    </div>
+
+    <!-- MODAL: ROULETTE ALÉATOIRE -->
+    <div id="rouletteModal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden-view z-50 p-4 font-sans">
+        <div class="bg-slate-900 border-4 border-yellow-500 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl text-center space-y-6">
+            <h3 class="text-2xl font-bold gold-text uppercase tracking-wider"><i class="fa-solid fa-circle-notch mr-2 animate-spin-slow"></i> Roulette Aléatoire</h3>
+            <p class="text-slate-300 text-sm">Qui va commencer la partie ?</p>
+            
+            <!-- Visuel de la Roulette -->
+            <div class="relative py-12 px-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner flex items-center justify-center min-h-[140px]">
+                <div id="rouletteDisplay" class="text-3xl font-black text-white tracking-wide uppercase transition-all duration-100">--</div>
+            </div>
+            
+            <div class="flex space-x-4 justify-center">
+                <button onclick="startRouletteSpin()" id="rouletteSpinBtn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-slate-950 font-bold px-8 py-3 rounded-xl shadow-lg transform transition active:scale-95 text-lg">
+                    <i class="fa-solid fa-play mr-2"></i> Lancer la roue !
+                </button>
+                <button onclick="closeRoulette()" id="rouletteCloseBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-6 py-3 rounded-xl">
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CLASSEMENT (DAMES CHINOISES) -->
+    <div id="rankingModal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden-view z-50 p-4 font-sans">
+        <div class="bg-slate-900 border-4 border-indigo-500 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+                <h3 class="text-2xl font-bold text-indigo-300 uppercase tracking-wider"><i class="fa-solid fa-trophy mr-2"></i> Fin de partie - Classement</h3>
+                <p class="text-slate-400 text-sm">Déterminez l'ordre d'arrivée et les billes restantes des joueurs.</p>
+            </div>
+
+            <!-- Liste des joueurs pour le classement -->
+            <div id="rankingPlayersList" class="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
+                <!-- Rempli en JS -->
+            </div>
+
+            <div class="flex space-x-4">
+                <button onclick="validateRanking()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-md transition">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i> Enregistrer le match
+                </button>
+                <button onclick="closeRankingModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-6 py-3 rounded-xl">
+                    Annuler
+                </button>
+            </div>
         </div>
     </div>
 
@@ -437,7 +533,7 @@
         }
 
         function updateCloudStatus(connected) {
-            const icons = ['cloudStatusIconMenu', 'cloudStatusIcon10000', 'cloudStatusIconScrabble', 'cloudStatusIconStats'];
+            const icons = ['cloudStatusIconMenu', 'cloudStatusIcon10000', 'cloudStatusIconScrabble', 'cloudStatusIconStats', 'cloudStatusIconDame'];
             icons.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -542,7 +638,7 @@
             console.log("Début de la synchronisation cloud...");
             
             // Mettre l'icône de synchro en rotation animée
-            const syncIcons = ['syncBtn10000', 'syncBtnScrabble', 'syncBtnStats'];
+            const syncIcons = ['syncBtn10000', 'syncBtnScrabble', 'syncBtnDame', 'syncBtnStats'];
             syncIcons.forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate animate-spin"></i>';
@@ -614,7 +710,7 @@
                 }
                 
                 // 3. Synchroniser la partie en cours
-                if (gameMode === '10000' || gameMode === 'scrabble') {
+                if (gameMode === '10000' || gameMode === 'scrabble' || gameMode === 'dame_chinoise') {
                     const { data: remoteActive, error: err3 } = await supabaseClient
                         .from('active_games')
                         .select('*')
@@ -676,7 +772,7 @@
         }
 
         async function pushActiveGameToSupabase() {
-            if (!supabaseClient || (gameMode !== '10000' && gameMode !== 'scrabble')) return;
+            if (!supabaseClient || (gameMode !== '10000' && gameMode !== 'scrabble' && gameMode !== 'dame_chinoise')) return;
             try {
                 await supabaseClient.from('active_games').upsert({
                     game_mode: gameMode,
@@ -694,7 +790,7 @@
         function saveState() {
             try {
                 localStorage.setItem("compteur_jeux_active_mode", gameMode);
-                if (gameMode === '10000' || gameMode === 'scrabble') {
+                if (gameMode === '10000' || gameMode === 'scrabble' || gameMode === 'dame_chinoise') {
                     localStorage.setItem(`compteur_jeux_state_${gameMode}`, JSON.stringify({
                         players,
                         currentTurn,
@@ -725,9 +821,15 @@
                     });
                 } else {
                     // Réinitialisation par défaut pour ce jeu
-                    players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
-                    currentTurn = 0;
-                    history = [];
+                    if (mode === 'dame_chinoise') {
+                        players = [];
+                        currentTurn = 0;
+                        history = [];
+                    } else {
+                        players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
+                        currentTurn = 0;
+                        history = [];
+                    }
                 }
             } catch (e) {
                 console.error(`Erreur lors du chargement de l'état pour ${mode}:`, e);
@@ -754,7 +856,7 @@
         function updateRivalrySelects() {
             const rivalries = getRivalries();
             
-            const selects = ['rivalrySelect10000', 'rivalrySelectScrabble'];
+            const selects = ['rivalrySelect10000', 'rivalrySelectScrabble', 'rivalrySelectDame'];
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (!select) return;
@@ -815,6 +917,14 @@
             const rivalries = getRivalries();
             const rivalry = rivalries.find(r => r.id == rivalryId);
             if (!rivalry) return;
+
+            // Limite de 6 joueurs maximum pour les Dames Chinoises
+            if (gameMode === 'dame_chinoise' && rivalry.playerNames.length > 6) {
+                alert(`Impossible de charger : ce groupe contient ${rivalry.playerNames.length} joueurs, alors que les Dames Chinoises sont limitées à 6 joueurs maximum.`);
+                const sel = document.getElementById('rivalrySelectDame');
+                if (sel) sel.value = "";
+                return;
+            }
             
             if (confirm(`Charger la rivalité "${rivalry.name}" ? Cela écrasera la partie en cours.`)) {
                 players = rivalry.playerNames.map((name, idx) => ({
@@ -827,26 +937,28 @@
                 history = [];
                 
                 // Clear selects
-                document.getElementById('rivalrySelect10000').value = "";
-                document.getElementById('rivalrySelectScrabble').value = "";
+                if (document.getElementById('rivalrySelect10000')) document.getElementById('rivalrySelect10000').value = "";
+                if (document.getElementById('rivalrySelectScrabble')) document.getElementById('rivalrySelectScrabble').value = "";
+                if (document.getElementById('rivalrySelectDame')) document.getElementById('rivalrySelectDame').value = "";
                 
                 broadcastState();
                 render();
             } else {
-                document.getElementById('rivalrySelect10000').value = "";
-                document.getElementById('rivalrySelectScrabble').value = "";
+                if (document.getElementById('rivalrySelect10000')) document.getElementById('rivalrySelect10000').value = "";
+                if (document.getElementById('rivalrySelectScrabble')) document.getElementById('rivalrySelectScrabble').value = "";
+                if (document.getElementById('rivalrySelectDame')) document.getElementById('rivalrySelectDame').value = "";
             }
         }
 
         // --- GAME MODE ---
         function setGameMode(mode) {
-            if (gameMode === '10000' || gameMode === 'scrabble') {
+            if (gameMode === '10000' || gameMode === 'scrabble' || gameMode === 'dame_chinoise') {
                 saveState();
             }
             
             gameMode = mode;
             
-            if (gameMode === '10000' || gameMode === 'scrabble') {
+            if (gameMode === '10000' || gameMode === 'scrabble' || gameMode === 'dame_chinoise') {
                 loadState(gameMode);
             }
             
@@ -856,40 +968,12 @@
             
             // Rafraîchir l'écran des stats
             if (gameMode === 'stats') {
-                const lastGame = localStorage.getItem("compteur_jeux_active_mode");
-                if (lastGame === '10000' || lastGame === 'scrabble') {
-                    activeStatsTab = lastGame;
-                } else {
-                    activeStatsTab = '10000';
-                }
-                updateStatsTabSelect();
                 renderStats();
             }
             
             // Rafraîchir les menus des rivalités
-            if (gameMode === '10000' || gameMode === 'scrabble') {
+            if (gameMode === '10000' || gameMode === 'scrabble' || gameMode === 'dame_chinoise') {
                 updateRivalrySelects();
-            }
-        }
-
-        let activeStatsTab = "10000"; // Mode de stats actif : "10000" ou "scrabble"
-
-        function setStatsTab(tab) {
-            activeStatsTab = tab;
-            updateStatsTabSelect();
-            renderStats();
-        }
-
-        function updateStatsTabSelect() {
-            const tab10000 = document.getElementById('statsTab10000');
-            const tabScrabble = document.getElementById('statsTabScrabble');
-            
-            if (activeStatsTab === '10000') {
-                tab10000.className = "flex-1 py-3 text-center font-bold border-b-2 border-yellow-500 text-yellow-500";
-                tabScrabble.className = "flex-1 py-3 text-center font-bold border-b-2 border-transparent text-slate-400 hover:text-white";
-            } else {
-                tab10000.className = "flex-1 py-3 text-center font-bold border-b-2 border-transparent text-slate-400 hover:text-white";
-                tabScrabble.className = "flex-1 py-3 text-center font-bold border-b-2 border-yellow-500 text-yellow-500";
             }
         }
 
@@ -897,6 +981,7 @@
             document.getElementById('view-menu').classList.add('hidden-view');
             document.getElementById('view-10000').classList.add('hidden-view');
             document.getElementById('view-scrabble').classList.add('hidden-view');
+            if (document.getElementById('view-dame')) document.getElementById('view-dame').classList.add('hidden-view');
             document.getElementById('view-stats').classList.add('hidden-view');
             
             const isMobile = window.innerWidth < 768;
@@ -909,6 +994,10 @@
                 document.getElementById('view-scrabble').classList.remove('hidden-view');
                 document.body.style.background = "#2c1e16"; // Dark brown for scrabble bg
                 document.body.style.paddingBottom = isMobile ? "325px" : "280px";
+            } else if (gameMode === 'dame_chinoise') {
+                if (document.getElementById('view-dame')) document.getElementById('view-dame').classList.remove('hidden-view');
+                document.body.style.background = "#0f172a"; // Dark blue/indigo for Dames Chinoises
+                document.body.style.paddingBottom = "40px"; // No bottom bar, only clearance padding
             } else if (gameMode === 'stats') {
                 document.getElementById('view-stats').classList.remove('hidden-view');
                 document.body.style.background = "#111";
@@ -921,22 +1010,27 @@
             }
             
             stopMic(); // Stop mic when changing view
-            document.documentElement.style.themeColor = gameMode === '10000' ? '#1b5e20' : gameMode === 'scrabble' ? '#8b4513' : '#111';
+            document.documentElement.style.themeColor = gameMode === '10000' ? '#1b5e20' : gameMode === 'scrabble' ? '#8b4513' : gameMode === 'dame_chinoise' ? '#312e81' : '#111';
         }
 
         // --- STATS & RIVALRY LOGIC ---
-        function saveGameResult(winnerName) {
+        function saveGameResult(winnerNameOrRecord) {
             try {
                 const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
                 const stats = JSON.parse(historyStats);
                 
-                const gameRecord = {
-                    id: Date.now(),
-                    gameMode: gameMode,
-                    date: new Date().toISOString(),
-                    winner: winnerName,
-                    players: players.map(p => ({ name: p.name, score: p.score }))
-                };
+                let gameRecord;
+                if (typeof winnerNameOrRecord === 'object') {
+                    gameRecord = winnerNameOrRecord;
+                } else {
+                    gameRecord = {
+                        id: Date.now(),
+                        gameMode: gameMode,
+                        date: new Date().toISOString(),
+                        winner: winnerNameOrRecord,
+                        players: players.map(p => ({ name: p.name, score: p.score }))
+                    };
+                }
                 
                 stats.push(gameRecord);
                 localStorage.setItem("compteur_jeux_stats", JSON.stringify(stats));
@@ -956,168 +1050,228 @@
         }
 
         function renderStats() {
-            const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
-            const allStats = JSON.parse(historyStats);
-            
-            // Filtrer par le jeu actif dans l'onglet des stats
-            const stats = allStats.filter(g => g.gameMode === activeStatsTab);
-            
-            document.getElementById('statsTotalGames').innerText = stats.length;
-            
-            const wins = {}; 
-            const playerSet = new Set();
-            
-            stats.forEach(game => {
-                if (game.winner) {
-                    wins[game.winner] = (wins[game.winner] || 0) + 1;
-                }
-                if (game.players) {
-                    game.players.forEach(p => playerSet.add(p.name));
-                }
-            });
-            
-            document.getElementById('statsTotalPlayers').innerText = playerSet.size;
-            
-            const leaderboard = document.getElementById('statsLeaderboard');
-            leaderboard.innerHTML = "";
-            
-            const sortedPlayers = Object.entries(wins).sort((a, b) => b[1] - a[1]);
-            
-            if (sortedPlayers.length === 0) {
-                leaderboard.innerHTML = `<div class="text-sm text-slate-400 italic text-center py-4">Aucune partie enregistrée pour ce jeu.</div>`;
-            } else {
-                sortedPlayers.forEach(([name, count], index) => {
-                    const row = document.createElement('div');
-                    row.className = "flex justify-between items-center bg-slate-800/40 p-3 rounded-lg border border-slate-700/20";
-                    row.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <span class="font-bold font-mono text-yellow-500">${index + 1}.</span>
-                            <span class="font-bold">${name}</span>
-                        </div>
-                        <div class="font-bold text-yellow-400">${count} ${count > 1 ? 'Victoires' : 'Victoire'}</div>
-                    `;
-                    leaderboard.appendChild(row);
-                });
-            }
-            
-            // Remplir le selecteur de rivalités
             const rivalrySelector = document.getElementById('statsRivalrySelector');
-            const prevVal = rivalrySelector.value;
+            const prevVal = rivalrySelector ? rivalrySelector.value : "";
             
-            rivalrySelector.innerHTML = '<option value="">-- Toutes les parties (Global) --</option>';
-            
-            const rivalries = getRivalries();
-            rivalries.forEach(r => {
-                const option = document.createElement('option');
-                option.value = r.id;
-                option.text = `${r.name} (${r.playerNames.join(', ')})`;
-                rivalrySelector.appendChild(option);
-            });
-            
-            if (prevVal && rivalries.some(r => r.id == prevVal)) {
-                rivalrySelector.value = prevVal;
+            if (rivalrySelector) {
+                rivalrySelector.innerHTML = '<option value="">-- Toutes les parties (Global) --</option>';
+                const rivalries = getRivalries();
+                rivalries.forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r.id;
+                    option.text = `${r.name} (${r.playerNames.join(', ')})`;
+                    rivalrySelector.appendChild(option);
+                });
+                
+                if (prevVal && rivalries.some(r => r.id == prevVal)) {
+                    rivalrySelector.value = prevVal;
+                }
             }
             
-            renderRivalry();
+            renderStatsDashboard();
         }
 
-        function renderRivalry() {
-            const rivalryId = document.getElementById('statsRivalrySelector').value;
-            const resultDiv = document.getElementById('rivalryResult');
-            
+        function renderStatsDashboard() {
+            const selector = document.getElementById('statsRivalrySelector');
+            const rivalryId = selector ? selector.value : "";
             const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
             const allStats = JSON.parse(historyStats);
-            const stats = allStats.filter(g => g.gameMode === activeStatsTab);
-            
-            if (!rivalryId) {
-                resultDiv.innerHTML = `<span class="text-slate-400 text-sm">Sélectionnez une rivalité ci-dessus pour analyser les confrontations de ce groupe.</span>`;
-                return;
-            }
-            
+
             const rivalries = getRivalries();
             const rivalry = rivalries.find(r => r.id == rivalryId);
+
+            // 1. Rendu Le 10 000
+            renderGameStatsPanel('10000', 'statsPanel10000', allStats, rivalry);
+
+            // 2. Rendu Scrabble
+            renderGameStatsPanel('scrabble', 'statsPanelScrabble', allStats, rivalry);
+
+            // 3. Rendu Dames Chinoises
+            renderGameStatsPanel('dame_chinoise', 'statsPanelDame', allStats, rivalry);
+        }
+
+        function renderGameStatsPanel(mode, containerId, allStats, rivalry) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+
+            const games = allStats.filter(g => g.gameMode === mode);
+
             if (!rivalry) {
-                resultDiv.innerHTML = `<span class="text-red-400 text-sm">Rivalité introuvable.</span>`;
-                return;
-            }
-            
-            const rivalryNames = rivalry.playerNames.map(n => n.toLowerCase().trim()).sort();
-            
-            // Filtrer l'historique : ne garder que les parties où les participants sont exactement ceux de la rivalité
-            const matchedGames = stats.filter(game => {
-                if (!game.players || game.players.length !== rivalryNames.length) return false;
-                const gameNames = game.players.map(p => p.name.toLowerCase().trim()).sort();
-                return gameNames.every((name, idx) => name === rivalryNames[idx]);
-            });
-            
-            if (matchedGames.length === 0) {
-                resultDiv.innerHTML = `
-                    <div class="text-slate-400 text-sm">
-                        Aucune partie enregistrée pour le groupe <strong class="text-white">${rivalry.name}</strong> (${rivalry.playerNames.join(', ')}).
+                // --- MODE GLOBAL ---
+                const wins = {};
+                const playerSet = new Set();
+                games.forEach(g => {
+                    if (g.winner) wins[g.winner] = (wins[g.winner] || 0) + 1;
+                    if (g.players) g.players.forEach(p => playerSet.add(p.name));
+                });
+
+                const sortedPlayers = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+
+                let html = `
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs mb-3">
+                        <div class="bg-black/35 p-2 rounded border border-slate-700/30">
+                            <span class="text-slate-400">Parties :</span>
+                            <div class="font-bold text-yellow-400 text-sm mt-0.5">${games.length}</div>
+                        </div>
+                        <div class="bg-black/35 p-2 rounded border border-slate-700/30">
+                            <span class="text-slate-400">Joueurs :</span>
+                            <div class="font-bold text-green-400 text-sm mt-0.5">${playerSet.size}</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-xs text-yellow-500 font-bold uppercase tracking-wider mb-1"><i class="fa-solid fa-trophy mr-1"></i>Victoires</div>
+                `;
+
+                if (sortedPlayers.length === 0) {
+                    html += `<div class="text-xs text-slate-400 italic text-center py-4">Aucune partie.</div>`;
+                } else {
+                    sortedPlayers.slice(0, 5).forEach(([name, count], index) => {
+                        html += `
+                            <div class="flex justify-between items-center bg-black/20 px-2.5 py-2 rounded text-xs border border-slate-800/40">
+                                <div class="font-medium text-slate-200"><span class="font-bold text-slate-500 mr-1.5">${index + 1}.</span>${name}</div>
+                                <div class="font-mono text-yellow-400 font-bold">${count} ${count > 1 ? 'vic.' : 'vic.'}</div>
+                            </div>
+                        `;
+                    });
+                }
+                html += `</div>`;
+                container.innerHTML = html;
+            } else {
+                // --- MODE RIVALITÉ ---
+                const rivalryNames = rivalry.playerNames.map(n => n.toLowerCase().trim()).sort();
+                const matchedGames = games.filter(g => {
+                    if (!g.players || g.players.length !== rivalryNames.length) return false;
+                    const gNames = g.players.map(p => p.name.toLowerCase().trim()).sort();
+                    return gNames.every((n, idx) => n === rivalryNames[idx]);
+                });
+
+                if (matchedGames.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-slate-400 text-center py-8 text-xs italic">
+                            Aucune partie jouée pour ce jeu dans cette rivalité.
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <div class="text-xs text-slate-400 mb-2 border-b border-slate-800 pb-1.5 flex justify-between">
+                        <span>Confrontations :</span>
+                        <strong class="text-white">${matchedGames.length}</strong>
                     </div>
                 `;
-                return;
-            }
-            
-            const statsSummary = {}; 
-            rivalry.playerNames.forEach(name => {
-                statsSummary[name] = { wins: 0, totalScore: 0, gamesPlayed: 0 };
-            });
-            
-            matchedGames.forEach(game => {
-                if (game.winner && statsSummary[game.winner]) {
-                    statsSummary[game.winner].wins++;
-                }
-                game.players.forEach(p => {
-                    if (statsSummary[p.name]) {
-                        statsSummary[p.name].totalScore += p.score;
-                        statsSummary[p.name].gamesPlayed++;
-                    }
-                });
-            });
-            
-            let html = `
-                <div class="text-sm text-slate-400 mb-3 text-left">
-                    Parties jouées ensemble : <strong class="text-white">${matchedGames.length}</strong>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-700 text-slate-400">
-                                <th class="py-2">Joueur</th>
-                                <th class="py-2 text-center">Victoires</th>
-                                <th class="py-2 text-center">Points cumulés</th>
-                                <th class="py-2 text-center">Moyenne</th>
+
+                if (mode === '10000' || mode === 'scrabble') {
+                    const statsSummary = {};
+                    rivalry.playerNames.forEach(name => {
+                        statsSummary[name] = { wins: 0, totalScore: 0, gamesPlayed: 0 };
+                    });
+
+                    matchedGames.forEach(g => {
+                        if (g.winner && statsSummary[g.winner]) statsSummary[g.winner].wins++;
+                        g.players.forEach(p => {
+                            if (statsSummary[p.name]) {
+                                statsSummary[p.name].totalScore += p.score;
+                                statsSummary[p.name].gamesPlayed++;
+                            }
+                        });
+                    });
+
+                    const sortedGroup = [...rivalry.playerNames].sort((a, b) => statsSummary[b].wins - statsSummary[a].wins);
+
+                    html += `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-700/50 text-slate-400">
+                                        <th class="py-1">Joueur</th>
+                                        <th class="py-1 text-center">Vic.</th>
+                                        <th class="py-1 text-center">Score</th>
+                                        <th class="py-1 text-center">Moy.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    sortedGroup.forEach(name => {
+                        const s = statsSummary[name];
+                        const avg = s.gamesPlayed > 0 ? Math.round(s.totalScore / s.gamesPlayed) : 0;
+                        html += `
+                            <tr class="border-b border-slate-800/60">
+                                <td class="py-2 font-semibold text-slate-200">${name}</td>
+                                <td class="py-2 text-center text-yellow-400 font-bold font-mono">${s.wins}</td>
+                                <td class="py-2 text-center font-mono">${s.totalScore}</td>
+                                <td class="py-2 text-center font-mono text-slate-400">${avg}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-            `;
-            
-            const sortedGroup = rivalry.playerNames.sort((a, b) => statsSummary[b].wins - statsSummary[a].wins);
-            
-            sortedGroup.forEach(name => {
-                const s = statsSummary[name];
-                const avg = s.gamesPlayed > 0 ? Math.round(s.totalScore / s.gamesPlayed) : 0;
-                const isWinner = s.wins > 0 && s.wins === Math.max(...rivalry.playerNames.map(n => statsSummary[n].wins));
-                const winClass = isWinner ? 'text-yellow-400 font-bold' : 'text-white';
-                
-                html += `
-                    <tr class="border-b border-slate-800">
-                        <td class="py-3 font-semibold ${winClass}">${name} ${isWinner ? '🏆' : ''}</td>
-                        <td class="py-3 text-center font-mono font-bold text-yellow-400">${s.wins}</td>
-                        <td class="py-3 text-center font-mono">${s.totalScore}</td>
-                        <td class="py-3 text-center font-mono text-slate-300">${avg}</td>
-                    </tr>
-                `;
-            });
-            
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            
-            resultDiv.innerHTML = html;
+                        `;
+                    });
+
+                    html += `</tbody></table></div>`;
+                } else if (mode === 'dame_chinoise') {
+                    const statsSummary = {};
+                    rivalry.playerNames.forEach(name => {
+                        statsSummary[name] = { wins: 0, gamesPlayed: 0, totalRank: 0, totalMarblesWhenLosing: 0, gamesLost: 0, medals: { 1: 0, 2: 0, 3: 0, other: 0 } };
+                    });
+
+                    matchedGames.forEach(g => {
+                        g.players.forEach(p => {
+                            const name = p.name;
+                            if (statsSummary[name]) {
+                                statsSummary[name].gamesPlayed++;
+                                statsSummary[name].totalRank += p.rank;
+                                if (p.rank === 1) {
+                                    statsSummary[name].wins++;
+                                } else {
+                                    statsSummary[name].gamesLost++;
+                                    statsSummary[name].totalMarblesWhenLosing += (p.marblesLeft || 0);
+                                }
+                                if (p.rank === 1) statsSummary[name].medals[1]++;
+                                else if (p.rank === 2) statsSummary[name].medals[2]++;
+                                else if (p.rank === 3) statsSummary[name].medals[3]++;
+                                else statsSummary[name].medals.other++;
+                            }
+                        });
+                    });
+
+                    const sortedGroup = [...rivalry.playerNames].sort((a, b) => statsSummary[b].wins - statsSummary[a].wins);
+
+                    html += `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-700/50 text-slate-400">
+                                        <th class="py-1">Joueur</th>
+                                        <th class="py-1 text-center">🥇/🥈/🥉</th>
+                                        <th class="py-1 text-center">Rang</th>
+                                        <th class="py-1 text-center">Billes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    sortedGroup.forEach(name => {
+                        const s = statsSummary[name];
+                        const avgRank = s.gamesPlayed > 0 ? (s.totalRank / s.gamesPlayed).toFixed(1) : '-';
+                        const avgMarbles = s.gamesLost > 0 ? (s.totalMarblesWhenLosing / s.gamesLost).toFixed(1) : '0';
+                        html += `
+                            <tr class="border-b border-slate-800/60">
+                                <td class="py-2 font-semibold text-slate-200">${name}</td>
+                                <td class="py-2 text-center">
+                                    <span class="font-mono text-yellow-400 font-bold">${s.medals[1]}</span>/` +
+                                    `<span class="font-mono text-slate-300">${s.medals[2]}</span>/` +
+                                    `<span class="font-mono text-amber-600">${s.medals[3]}</span>
+                                </td>
+                                <td class="py-2 text-center font-mono">${avgRank}</td>
+                                <td class="py-2 text-center font-mono text-slate-400">${avgMarbles}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `</tbody></table></div>`;
+                }
+                container.innerHTML = html;
+            }
         }
 
         function clearStats() {
@@ -1248,15 +1402,24 @@
 
         // --- GAME LOGIC ---
         function addPlayer(mode) {
-            const inputId = mode === '10000' ? 'newPlayerName10000' : 'newPlayerNameScrabble';
-            const input = document.getElementById(inputId);
-            const name = input.value.trim();
-            if (name) {
-                players.push({ id: Date.now(), name: name, score: 0, scoresHistory: [] });
-                input.value = '';
-                broadcastState();
-                render();
+            if (mode === 'dame' && players.length >= 6) {
+                alert("Le jeu de Dames Chinoises est limité à 6 joueurs maximum !");
+                return;
             }
+            const inputId = mode === '10000' ? 'newPlayerName10000' : (mode === 'scrabble' ? 'newPlayerNameScrabble' : 'newPlayerNameDame');
+            const input = document.getElementById(inputId);
+            const name = input ? input.value.trim() : '';
+            
+            if (!name) return;
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                alert("Ce joueur existe déjà !");
+                return;
+            }
+            
+            players.push({ id: Date.now(), name: name, score: 0, scoresHistory: [] });
+            if (input) input.value = '';
+            broadcastState();
+            render();
         }
 
         function removePlayer(id) {
@@ -1433,10 +1596,13 @@
         function render() {
             if (gameMode === '10000') renderPlayersList('playersList10000', 'active-player-10000', 'text-white', 'text-green-600');
             else if (gameMode === 'scrabble') renderPlayersList('playersListScrabble', 'active-player-scrabble', 'text-[#3e2723]', 'text-[#8b4513]');
+            else if (gameMode === 'dame_chinoise') renderPlayersList('playersListDame', 'active-player-dame', 'text-white', 'text-indigo-400');
 
             const curName = players.length > 0 && players[currentTurn] ? players[currentTurn].name : '--';
-            document.getElementById('currentPlayerName10000').innerText = curName;
-            document.getElementById('currentPlayerNameScrabble').innerText = curName;
+            const nameEl1 = document.getElementById('currentPlayerName10000');
+            const nameEl2 = document.getElementById('currentPlayerNameScrabble');
+            if (nameEl1) nameEl1.innerText = curName;
+            if (nameEl2) nameEl2.innerText = curName;
             
             document.querySelectorAll('.undoBtn').forEach(btn => btn.disabled = history.length === 0);
         }
@@ -1476,6 +1642,9 @@
                 const buttonColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-[#8b4513]' : 'text-white/30 hover:text-white';
                 const deleteColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-red-600' : 'text-white/30 hover:text-red-400';
  
+                const scoreHtml = gameMode === 'dame_chinoise' ? '' : `<div class="text-2xl md:text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>`;
+                const historyBtnHtml = gameMode === 'dame_chinoise' ? '' : `<button onclick="openPlayerHistoryModal(${p.id}); event.stopPropagation();" class="${buttonColor} p-1 md:p-2 text-sm md:text-base" title="Historique du joueur"><i class="fa-solid fa-clock-rotate-left"></i></button>`;
+
                 div.innerHTML = `
                     <div class="flex items-center space-x-2 md:space-x-4">
                         <div class="${isActive ? playIconColor : indexColor} w-6 text-center font-bold text-lg md:text-xl">
@@ -1486,11 +1655,11 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-1.5 md:space-x-3">
-                        <div class="text-2xl md:text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>
+                        ${scoreHtml}
                         
                         <!-- Actions -->
                         <div class="flex items-center space-x-0.5 md:space-x-1">
-                            <button onclick="openPlayerHistoryModal(${p.id}); event.stopPropagation();" class="${buttonColor} p-1 md:p-2 text-sm md:text-base" title="Historique du joueur"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                            ${historyBtnHtml}
                             <button onclick="movePlayer(${i}, -1); event.stopPropagation();" ${isFirst ? 'disabled' : ''} class="${buttonColor} p-1 md:p-2 text-sm md:text-base disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le haut"><i class="fa-solid fa-chevron-up"></i></button>
                             <button onclick="movePlayer(${i}, 1); event.stopPropagation();" ${isLast ? 'disabled' : ''} class="${buttonColor} p-1 md:p-2 text-sm md:text-base disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le bas"><i class="fa-solid fa-chevron-down"></i></button>
                             <button onclick="removePlayer(${p.id}); event.stopPropagation();" class="${deleteColor} p-1 md:p-2 text-sm md:text-base" title="Supprimer le joueur"><i class="fa-solid fa-xmark"></i></button>
@@ -1501,28 +1670,189 @@
             });
         }
 
+        // --- ROULETTE ALÉATOIRE ---
+        let rouletteTimer = null;
+        function openRoulette() {
+            if (players.length === 0) {
+                alert("Veuillez d'abord ajouter des joueurs !");
+                return;
+            }
+            document.getElementById('rouletteDisplay').innerText = "--";
+            document.getElementById('rouletteDisplay').className = "text-3xl font-black text-white tracking-wide uppercase";
+            document.getElementById('rouletteSpinBtn').disabled = false;
+            document.getElementById('rouletteSpinBtn').style.opacity = "1";
+            document.getElementById('rouletteModal').classList.remove('hidden-view');
+        }
+
+        function closeRoulette() {
+            if (rouletteTimer) clearTimeout(rouletteTimer);
+            document.getElementById('rouletteModal').classList.add('hidden-view');
+        }
+
+        function startRouletteSpin() {
+            document.getElementById('rouletteSpinBtn').disabled = true;
+            document.getElementById('rouletteSpinBtn').style.opacity = "0.5";
+            
+            let currentIndex = 0;
+            let duration = 2500; 
+            let startTime = Date.now();
+            let currentDelay = 40; 
+            
+            function spin() {
+                const elapsed = Date.now() - startTime;
+                if (elapsed >= duration) {
+                    const winnerIndex = Math.floor(Math.random() * players.length);
+                    document.getElementById('rouletteDisplay').innerText = players[winnerIndex].name;
+                    document.getElementById('rouletteDisplay').className = "text-4xl font-black text-yellow-400 tracking-wide uppercase animate-bounce";
+                    
+                    setTurn(winnerIndex);
+                    
+                    setTimeout(() => {
+                        closeRoulette();
+                    }, 1800);
+                } else {
+                    currentIndex = (currentIndex + 1) % players.length;
+                    document.getElementById('rouletteDisplay').innerText = players[currentIndex].name;
+                    
+                    let ratio = elapsed / duration;
+                    currentDelay = 40 + (ratio * 380); 
+                    
+                    rouletteTimer = setTimeout(spin, currentDelay);
+                }
+            }
+            spin();
+        }
+
+        // --- CLASSEMENT (DAMES CHINOISES) ---
+        let activeRankingPlayers = [];
+        function openRankingModal() {
+            if (players.length < 2) {
+                alert("Il faut au moins 2 joueurs pour terminer une partie !");
+                return;
+            }
+            activeRankingPlayers = players.map((p, index) => ({
+                id: p.id,
+                name: p.name,
+                rank: index + 1,
+                marblesLeft: 0
+            }));
+            renderRankingPlayers();
+            document.getElementById('rankingModal').classList.remove('hidden-view');
+        }
+
+        function closeRankingModal() {
+            document.getElementById('rankingModal').classList.add('hidden-view');
+        }
+
+        function renderRankingPlayers() {
+            const container = document.getElementById('rankingPlayersList');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            activeRankingPlayers.forEach((p) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-slate-800/80 border border-slate-700/60 rounded-2xl gap-3 text-white";
+                
+                let selectOptions = "";
+                for(let r = 1; r <= players.length; r++) {
+                    selectOptions += `<option value="${r}" ${p.rank === r ? 'selected' : ''}>${r === 1 ? '1er (Vainqueur)' : r + 'e'}</option>`;
+                }
+                
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <span class="font-bold text-lg text-indigo-300 min-w-[80px] sm:min-w-0">${p.name} :</span>
+                        <select onchange="updatePlayerRank(${p.id}, this.value)" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-sm">
+                            ${selectOptions}
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end ${p.rank === 1 ? 'opacity-30 pointer-events-none' : ''}">
+                        <span class="text-sm text-slate-400">Billes restantes :</span>
+                        <input type="number" min="0" max="10" value="${p.marblesLeft}" onchange="updatePlayerMarbles(${p.id}, this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-center text-white font-mono text-sm">
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updatePlayerRank(id, rankVal) {
+            const player = activeRankingPlayers.find(p => p.id === id);
+            if (player) {
+                player.rank = parseInt(rankVal);
+                if (player.rank === 1) {
+                    player.marblesLeft = 0;
+                }
+                renderRankingPlayers();
+            }
+        }
+
+        function updatePlayerMarbles(id, val) {
+            const player = activeRankingPlayers.find(p => p.id === id);
+            if (player) {
+                player.marblesLeft = Math.max(0, parseInt(val) || 0);
+            }
+        }
+
+        function validateRanking() {
+            const ranks = activeRankingPlayers.map(p => p.rank);
+            const uniqueRanks = new Set(ranks);
+            if (uniqueRanks.size !== ranks.length) {
+                alert("Chaque joueur doit avoir un rang unique (pas de doublons dans le classement) !");
+                return;
+            }
+            
+            const winner = activeRankingPlayers.find(p => p.rank === 1);
+            if (!winner) {
+                alert("Vous devez désigner un 1er (Vainqueur) !");
+                return;
+            }
+            
+            const winnerName = winner.name;
+            const date = new Date().toISOString();
+            
+            const resultData = {
+                id: Date.now(),
+                gameMode: 'dame_chinoise',
+                date: date,
+                winner: winnerName,
+                players: activeRankingPlayers.map(p => ({
+                    name: p.name,
+                    rank: p.rank,
+                    marblesLeft: p.marblesLeft
+                }))
+            };
+            
+            saveGameResult(resultData);
+            
+            players = [];
+            currentTurn = 0;
+            history = [];
+            saveState();
+            
+            closeRankingModal();
+            setGameMode('menu');
+            
+            alert(`Match de Dames Chinoises enregistré ! Vainqueur : ${winnerName}`);
+        }
+
         // --- INIT ---
         function initApp() {
             try {
-                // Initialiser Supabase en premier
                 initSupabase();
                 
                 const lastMode = localStorage.getItem("compteur_jeux_active_mode");
                 gameMode = lastMode || "menu";
                 
-                if (gameMode === '10000' || gameMode === 'scrabble') {
+                if (gameMode === '10000' || gameMode === 'scrabble' || gameMode === 'dame_chinoise') {
                     loadState(gameMode);
                 } else {
                     gameMode = "menu";
-                    players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
+                    players = [];
                     currentTurn = 0;
                     history = [];
                 }
                 
-                // Charger la liste des rivalités enregistrées pour les selects
                 updateRivalrySelects();
                 
-                // Lancer la synchronisation en arrière-plan si Supabase est connecté
                 if (supabaseClient) {
                     syncData();
                 }
