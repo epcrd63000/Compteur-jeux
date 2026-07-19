@@ -388,9 +388,10 @@
                 supabaseUrl = localStorage.getItem("compteur_jeux_supabase_url") || "";
                 supabaseKey = localStorage.getItem("compteur_jeux_supabase_key") || "";
                 
-                // Pré-remplir l'URL si elle n'a pas encore été configurée
-                if (!supabaseUrl && window.location.hostname.endsWith('github.io')) {
+                // Si aucune configuration personnalisée n'est stockée, utiliser les identifiants par défaut du projet
+                if (!supabaseUrl && !supabaseKey) {
                     supabaseUrl = "https://umfsneguvtxzxdlczeky.supabase.co";
+                    supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZnNuZWd1dnR4enhkbGN6ZWt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0Njk0MTIsImV4cCI6MjEwMDA0NTQxMn0.u0Ev_iwAHgJ2SNwDLz12PExVegOxOdhIs5PM3eTYJ4E";
                 }
                 
                 if (supabaseUrl && supabaseKey) {
