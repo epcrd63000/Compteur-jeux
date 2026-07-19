@@ -7,24 +7,20 @@ Application web progressive pour le comptage multi-joueurs temps réel, avec sup
 ## ✨ Fonctionnalités principales
 
 ### Multi-Joueurs & Groupes 👥
-- ✅ **Créer ou rejoindre des groupes** - Code d'invitation unique
 - ✅ **Gestion multi-joueurs** - Jusqu'à 10 joueurs par partie
-- ✅ **Pseudo et couleurs personnalisés** - Support UTF-8 (Hébreu, accents, etc.)
 - ✅ **Gestion automatique des tours** - Passage au joueur suivant après scoring
+- ✅ **Réorganisation à la volée** - Ajustez l'ordre de passage des joueurs à tout moment à l'aide des boutons de déplacement (Haut/Bas)
+- ✅ **Persistance automatique** - Sauvegarde instantanée de la partie en cours dans le stockage local du navigateur (`localStorage`)
 
-### Gameplay 🎲
-- ✅ **Boutons rapides** - +100, +150, +200, +300 points
-- ✅ **Reconnaissance vocale** - Dictez les points en français ("cent cinquante")
-- ✅ **Édition flexible** - Undo, modification manuelle des scores
-- ✅ **Historique détaillé** - Trace de tous les scores par tour
-- ✅ **Détection de victoire** - Animation automatique à 10 000 points
+### Gameplay & Suivi des scores 🎲
+- ✅ **Boutons rapides** - Saisie en un clic (50, 100, 150... ou pavé numérique libre)
+- ✅ **Reconnaissance vocale** - Saisie des points par dictée vocale en français
+- ✅ **Historique par joueur (Long-clic)** - Maintenez le clic sur un joueur (ou utilisez le bouton dédié) pour afficher, modifier ou supprimer individuellement les points de chacun de ses tours
+- ✅ **Statistiques & Rivalités** - Suivi historique des victoires par joueur et outil de confrontation Face-à-Face pour analyser le ratio de victoires entre deux rivaux
 
 ### Technologie 🔧
-- ✅ **Mode offline-first** - Fonctionne sans Internet (localStorage)
-- ✅ **Temps réel** - Supabase Realtime pour synchronisation multi-appareils
-- ✅ **Responsive 100% Mobile First** - Portrait et Paysage
-- ✅ **Design moderne** - Tailwind CSS + animations fluides
-- ✅ **Architecture modulaire** - Moteur extensible pour nouveaux jeux
+- ✅ **Mode offline-first robuste** - Le Service Worker met en cache l'ensemble des fichiers requis (y compris Tailwind et les icônes FontAwesome) pour un fonctionnement 100% autonome sans Internet
+- ✅ **Synchronisation WebSocket** - Synchronisation automatique multi-écrans lors d'un lancement local via le serveur FastAPI (Python)
 
 ## 🚀 Déploiement sur GitHub Pages
 

@@ -58,6 +58,58 @@
                 <h2 class="text-3xl font-bold text-[#ffdead]">Scrabble</h2>
                 <p class="text-[#e6c280] text-sm font-sans">Compteur libre avec pavé numérique</p>
             </button>
+
+            <button onclick="setGameMode('stats')" class="menu-btn bg-gradient-to-br from-slate-800 to-slate-900 border-4 border-slate-600 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4 md:col-span-2">
+                <i class="fa-solid fa-chart-line text-6xl text-white"></i>
+                <h2 class="text-3xl font-bold text-slate-300">Statistiques & Rivalités</h2>
+                <p class="text-slate-400 text-sm font-sans">Leaderboard & confrontations face-à-face</p>
+            </button>
+        </div>
+    </div>
+
+    <!-- VIEW: STATS -->
+    <div id="view-stats" class="w-full max-w-2xl mx-auto hidden-view space-y-6">
+        <div class="wood-border" style="background: #2b2b2b; padding: 12px; border-radius: 24px; border: 16px solid #1a1a1a; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
+            <div class="bg-black/60 p-4 md:p-6 rounded-xl space-y-6 text-white min-h-[70vh]">
+                <header class="flex justify-between items-center py-2 border-b border-slate-700 pb-4">
+                    <button onclick="setGameMode('menu')" class="text-white bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i> Menu</button>
+                    <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-wider">📈 STATS & RIVALITÉS</h1>
+                    <button onclick="clearStats()" class="text-red-400 hover:text-red-300 text-sm bg-red-950/40 px-3 py-2 rounded"><i class="fa-solid fa-trash-can"></i> Effacer</button>
+                </header>
+
+                <!-- Global Stats Overview -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-800/60 p-4 rounded-xl text-center border border-slate-700/50">
+                        <div class="text-slate-400 text-sm">Parties Jouées</div>
+                        <div id="statsTotalGames" class="text-3xl font-black text-yellow-400 mt-1">0</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-4 rounded-xl text-center border border-slate-700/50">
+                        <div class="text-slate-400 text-sm">Joueurs Uniques</div>
+                        <div id="statsTotalPlayers" class="text-3xl font-black text-green-400 mt-1">0</div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard / Victoires -->
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-yellow-500"><i class="fa-solid fa-trophy mr-2"></i>Tableau des Victoires</h3>
+                    <div id="statsLeaderboard" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Rempli par le JS -->
+                    </div>
+                </div>
+
+                <!-- Face-to-Face Rivalries -->
+                <div class="space-y-3 border-t border-slate-700 pt-4">
+                    <h3 class="text-lg font-bold text-yellow-500"><i class="fa-solid fa-handshake-slash mr-2"></i>Rivalités (Face à Face)</h3>
+                    <div class="flex space-x-2">
+                        <select id="rivalPlayer1" class="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white" onchange="renderRivalry()"></select>
+                        <span class="flex items-center text-slate-400 font-bold">VS</span>
+                        <select id="rivalPlayer2" class="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white" onchange="renderRivalry()"></select>
+                    </div>
+                    <div id="rivalryResult" class="bg-slate-800/40 p-4 rounded-xl text-center border border-slate-700/50 min-h-[80px] flex flex-col justify-center font-sans">
+                        Sélectionnez deux joueurs différents pour comparer leurs confrontations.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -174,17 +226,43 @@
     </div>
 
     <!-- Speech Toast -->
-    <div id="speechToast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-black/80 text-yellow-400 px-6 py-3 rounded-full opacity-0 transition-opacity duration-300 pointer-events-none z-50 font-bold border border-yellow-500/50 shadow-xl">
+    <div id="speechToast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-black/80 text-yellow-400 px-6 py-3 rounded-full opacity-0 transition-opacity duration-300 pointer-events-none z-50 font-bold border border-yellow-500/50 shadow-xl font-sans">
         J'écoute...
+    </div>
+
+    <!-- MODAL: HISTORIQUE / MODIFICATION SCORES -->
+    <div id="historyModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[9999] hidden-view">
+        <div class="bg-[#1e1e1e] text-white rounded-2xl w-full max-w-md border-2 border-slate-700 overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
+            <header class="p-4 border-b border-slate-700 bg-black/40 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-yellow-400 font-serif" id="historyModalTitle">Historique</h3>
+                    <p class="text-xs text-slate-400 font-sans">Modifiez les valeurs ou supprimez une ligne</p>
+                </div>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            
+            <div id="historyModalList" class="p-4 overflow-y-auto space-y-2 flex-1 font-sans">
+                <!-- Les scores seront insérés ici -->
+            </div>
+            
+            <footer class="p-4 border-t border-slate-700 bg-black/20 flex justify-between items-center text-sm font-sans">
+                <div class="font-bold text-base">Total : <span id="historyModalTotal" class="text-yellow-400 text-2xl ml-2 font-mono">0</span></div>
+                <button onclick="closeHistoryModal()" class="bg-yellow-600 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold">Fermer</button>
+            </footer>
+        </div>
     </div>
 
     <script>
         // --- STATE ---
-        let gameMode = "menu"; // "menu", "10000", "scrabble"
+        let gameMode = "menu"; // "menu", "10000", "scrabble", "stats"
         let players = [];
         let currentTurn = 0;
         let history = []; 
         let scrabbleBuffer = "";
+
+        // Variables pour la détection du clic maintenu (Long Press)
+        let pressTimer;
+        let isLongPress = false;
 
         // --- WEBSOCKET SYNC ---
         let ws;
@@ -218,7 +296,22 @@
             };
         }
 
+        // --- LOCAL STORAGE PERSISTENCE ---
+        function saveState() {
+            try {
+                localStorage.setItem("compteur_jeux_state", JSON.stringify({
+                    gameMode,
+                    players,
+                    currentTurn,
+                    history
+                }));
+            } catch (e) {
+                console.error("Erreur de sauvegarde de l'état:", e);
+            }
+        }
+
         function broadcastState() {
+            saveState();
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({type: "update", data: {gameMode, players, currentTurn}}));
             }
@@ -236,6 +329,7 @@
             document.getElementById('view-menu').classList.add('hidden-view');
             document.getElementById('view-10000').classList.add('hidden-view');
             document.getElementById('view-scrabble').classList.add('hidden-view');
+            document.getElementById('view-stats').classList.add('hidden-view');
             
             if (gameMode === '10000') {
                 document.getElementById('view-10000').classList.remove('hidden-view');
@@ -243,6 +337,10 @@
             } else if (gameMode === 'scrabble') {
                 document.getElementById('view-scrabble').classList.remove('hidden-view');
                 document.body.style.background = "#2c1e16"; // Dark brown for scrabble bg
+            } else if (gameMode === 'stats') {
+                document.getElementById('view-stats').classList.remove('hidden-view');
+                document.body.style.background = "#111";
+                renderStats();
             } else {
                 document.getElementById('view-menu').classList.remove('hidden-view');
                 document.body.style.background = "#111";
@@ -250,6 +348,164 @@
             
             stopMic(); // Stop mic when changing view
             document.documentElement.style.themeColor = gameMode === '10000' ? '#1b5e20' : gameMode === 'scrabble' ? '#8b4513' : '#111';
+        }
+
+        // --- STATS & RIVALRY LOGIC ---
+        function saveGameResult(winnerName) {
+            try {
+                const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
+                const stats = JSON.parse(historyStats);
+                
+                const gameRecord = {
+                    id: Date.now(),
+                    gameMode: gameMode,
+                    date: new Date().toISOString(),
+                    winner: winnerName,
+                    players: players.map(p => ({ name: p.name, score: p.score }))
+                };
+                
+                stats.push(gameRecord);
+                localStorage.setItem("compteur_jeux_stats", JSON.stringify(stats));
+            } catch (e) {
+                console.error("Erreur d'enregistrement des statistiques:", e);
+            }
+        }
+
+        function renderStats() {
+            const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
+            const stats = JSON.parse(historyStats);
+            
+            document.getElementById('statsTotalGames').innerText = stats.length;
+            
+            const wins = {}; 
+            const playerSet = new Set();
+            
+            stats.forEach(game => {
+                if (game.winner) {
+                    wins[game.winner] = (wins[game.winner] || 0) + 1;
+                }
+                if (game.players) {
+                    game.players.forEach(p => playerSet.add(p.name));
+                }
+            });
+            
+            document.getElementById('statsTotalPlayers').innerText = playerSet.size;
+            
+            const leaderboard = document.getElementById('statsLeaderboard');
+            leaderboard.innerHTML = "";
+            
+            const sortedPlayers = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+            
+            if (sortedPlayers.length === 0) {
+                leaderboard.innerHTML = `<div class="text-sm text-slate-400 italic text-center py-4">Aucune partie enregistrée.</div>`;
+            } else {
+                sortedPlayers.forEach(([name, count], index) => {
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between items-center bg-slate-800/40 p-3 rounded-lg border border-slate-700/20";
+                    row.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <span class="font-bold font-mono text-yellow-500">${index + 1}.</span>
+                            <span class="font-bold">${name}</span>
+                        </div>
+                        <div class="font-bold text-yellow-400">${count} ${count > 1 ? 'Victoires' : 'Victoire'}</div>
+                    `;
+                    leaderboard.appendChild(row);
+                });
+            }
+            
+            const p1Select = document.getElementById('rivalPlayer1');
+            const p2Select = document.getElementById('rivalPlayer2');
+            
+            const prevP1 = p1Select.value;
+            const prevP2 = p2Select.value;
+            
+            p1Select.innerHTML = `<option value="">-- Joueur 1 --</option>`;
+            p2Select.innerHTML = `<option value="">-- Joueur 2 --</option>`;
+            
+            Array.from(playerSet).sort().forEach(player => {
+                p1Select.innerHTML += `<option value="${player}">${player}</option>`;
+                p2Select.innerHTML += `<option value="${player}">${player}</option>`;
+            });
+            
+            if (prevP1 && playerSet.has(prevP1)) p1Select.value = prevP1;
+            if (prevP2 && playerSet.has(prevP2)) p2Select.value = prevP2;
+            
+            renderRivalry();
+        }
+
+        function renderRivalry() {
+            const p1 = document.getElementById('rivalPlayer1').value;
+            const p2 = document.getElementById('rivalPlayer2').value;
+            const resultDiv = document.getElementById('rivalryResult');
+            
+            if (!p1 || !p2) {
+                resultDiv.innerHTML = `<span class="text-slate-400 text-sm">Sélectionnez deux joueurs différents pour comparer leurs confrontations.</span>`;
+                return;
+            }
+            if (p1 === p2) {
+                resultDiv.innerHTML = `<span class="text-red-400 text-sm font-bold">Veuillez sélectionner deux personnes distinctes.</span>`;
+                return;
+            }
+            
+            const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
+            const stats = JSON.parse(historyStats);
+            
+            let p1Wins = 0;
+            let p2Wins = 0;
+            let totalMatchups = 0;
+            
+            stats.forEach(game => {
+                const gamePlayers = game.players ? game.players.map(p => p.name) : [];
+                if (gamePlayers.includes(p1) && gamePlayers.includes(p2)) {
+                    totalMatchups++;
+                    if (game.winner === p1) p1Wins++;
+                    else if (game.winner === p2) p2Wins++;
+                }
+            });
+            
+            if (totalMatchups === 0) {
+                resultDiv.innerHTML = `<span class="text-slate-400 text-sm">Aucun match enregistré opposant ${p1} et ${p2}.</span>`;
+            } else {
+                const p1Pct = Math.round((p1Wins / totalMatchups) * 100);
+                const p2Pct = Math.round((p2Wins / totalMatchups) * 100);
+                
+                resultDiv.innerHTML = `
+                    <div class="text-sm text-slate-400 mb-2">Confrontations : <strong class="text-white">${totalMatchups}</strong></div>
+                    <div class="flex justify-between items-center text-lg font-bold">
+                        <div class="text-left flex-1">
+                            <span class="text-white font-black">${p1}</span>
+                            <div class="text-3xl text-yellow-400 font-mono">${p1Wins}</div>
+                            <div class="text-xs text-slate-400">${p1Pct}% victoires</div>
+                        </div>
+                        <div class="px-4 font-black text-slate-500">VS</div>
+                        <div class="text-right flex-1">
+                            <span class="text-white font-black">${p2}</span>
+                            <div class="text-3xl text-yellow-400 font-mono">${p2Wins}</div>
+                            <div class="text-xs text-slate-400">${p2Pct}% victoires</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function clearStats() {
+            if (confirm("Voulez-vous vraiment supprimer tout l'historique des statistiques et rivalités ?")) {
+                localStorage.removeItem("compteur_jeux_stats");
+                renderStats();
+            }
+        }
+
+        // --- LONG PRESS GESTURE HANDLERS ---
+        function startPress(playerId) {
+            isLongPress = false;
+            pressTimer = window.setTimeout(() => {
+                isLongPress = true;
+                openPlayerHistoryModal(playerId);
+            }, 600); 
+        }
+
+        function endPress() {
+            clearTimeout(pressTimer);
         }
 
         // --- MICROPHONE LOGIC ---
@@ -364,7 +620,7 @@
             const input = document.getElementById(inputId);
             const name = input.value.trim();
             if (name) {
-                players.push({ id: Date.now(), name: name, score: 0 });
+                players.push({ id: Date.now(), name: name, score: 0, scoresHistory: [] });
                 input.value = '';
                 broadcastState();
                 render();
@@ -380,6 +636,27 @@
             }
         }
 
+        function movePlayer(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= players.length) return;
+            
+            const activePlayerId = players[currentTurn] ? players[currentTurn].id : null;
+            
+            // Échange des joueurs
+            const temp = players[index];
+            players[index] = players[targetIndex];
+            players[targetIndex] = temp;
+            
+            // Conserver le tour actif sur le même joueur
+            if (activePlayerId !== null) {
+                currentTurn = players.findIndex(p => p.id === activePlayerId);
+                if (currentTurn === -1) currentTurn = 0;
+            }
+            
+            broadcastState();
+            render();
+        }
+
         function setTurn(index) {
             currentTurn = index;
             broadcastState();
@@ -393,8 +670,11 @@
             if(history.length > 20) history.shift();
             
             players[currentTurn].score += points;
+            players[currentTurn].scoresHistory = players[currentTurn].scoresHistory || [];
+            players[currentTurn].scoresHistory.push(points);
             
             if (gameMode === '10000' && players[currentTurn].score >= 10000) {
+                saveGameResult(players[currentTurn].name);
                 setTimeout(() => alert(`🎉 VICTOIRE DE ${players[currentTurn].name.toUpperCase()} ! 🎉`), 100);
             }
             
@@ -427,14 +707,94 @@
             }
         }
 
+        // Fin de partie et enregistrement des stats
         function resetScores() {
             if (confirm("Fin de partie : Remettre tous les scores à zéro pour rejouer avec les mêmes joueurs ?")) {
+                if (players.length > 0) {
+                    let winner = players[0];
+                    players.forEach(p => {
+                        if (p.score > winner.score) winner = p;
+                    });
+                    if (winner.score > 0) {
+                        saveGameResult(winner.name);
+                    }
+                }
+                
                 history.push(JSON.stringify({gameMode, players, currentTurn}));
-                players.forEach(p => p.score = 0);
+                players.forEach(p => {
+                    p.score = 0;
+                    p.scoresHistory = [];
+                });
                 currentTurn = 0;
                 broadcastState();
                 render();
             }
+        }
+
+        // --- SCORES HISTORY MODAL FUNCTIONS ---
+        let activeHistoryPlayerId = null;
+
+        function openPlayerHistoryModal(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            activeHistoryPlayerId = playerId;
+            document.getElementById('historyModalTitle').innerText = `Historique de ${player.name}`;
+            
+            const listContainer = document.getElementById('historyModalList');
+            listContainer.innerHTML = '';
+            
+            const hist = player.scoresHistory || [];
+            
+            if (hist.length === 0) {
+                listContainer.innerHTML = `<div class="text-slate-400 italic text-center p-4">Aucun score saisi.</div>`;
+            } else {
+                hist.forEach((pts, idx) => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between bg-slate-800/60 p-3 rounded-lg border border-slate-700/50";
+                    row.innerHTML = `
+                        <span class="text-slate-400 font-mono text-sm">Tour ${idx + 1}</span>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" value="${pts}" onchange="updateHistoryScore(${playerId}, ${idx}, this.value)" class="w-20 bg-black border border-slate-700 rounded px-2 py-1 text-center font-bold text-yellow-400 text-lg focus:outline-none focus:border-yellow-500 font-mono">
+                            <button onclick="deleteHistoryScore(${playerId}, ${idx})" class="text-red-400 hover:text-red-300 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    `;
+                    listContainer.appendChild(row);
+                });
+            }
+            
+            document.getElementById('historyModalTotal').innerText = player.score;
+            document.getElementById('historyModal').classList.remove('hidden-view');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden-view');
+            activeHistoryPlayerId = null;
+        }
+
+        function updateHistoryScore(playerId, idx, val) {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            const intVal = parseInt(val);
+            player.scoresHistory[idx] = isNaN(intVal) ? 0 : intVal;
+            player.score = player.scoresHistory.reduce((sum, v) => sum + v, 0);
+            
+            document.getElementById('historyModalTotal').innerText = player.score;
+            broadcastState();
+            render();
+        }
+
+        function deleteHistoryScore(playerId, idx) {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            player.scoresHistory.splice(idx, 1);
+            player.score = player.scoresHistory.reduce((sum, v) => sum + v, 0);
+            
+            openPlayerHistoryModal(playerId);
+            broadcastState();
+            render();
         }
 
         // --- UI ---
@@ -458,13 +818,31 @@
                 const isActive = i === currentTurn;
                 const div = document.createElement('div');
                 div.className = `flex justify-between items-center ${gameMode==='scrabble' ? 'bg-[#ffdead]/80' : 'bg-black/60'} p-4 rounded-xl border-2 transition cursor-pointer ${isActive ? activeClass : 'border-transparent'}`;
+                
+                // Détection du clic maintenu (Long Press) de 600ms
+                div.setAttribute('onmousedown', `startPress(${p.id})`);
+                div.setAttribute('onmouseup', `endPress()`);
+                div.setAttribute('onmouseleave', `endPress()`);
+                div.setAttribute('ontouchstart', `startPress(${p.id})`);
+                div.setAttribute('ontouchend', `endPress()`);
+                div.setAttribute('ontouchmove', `endPress()`);
+                
                 div.onclick = (e) => {
-                    if(!e.target.closest('button')) setTurn(i);
+                    if (isLongPress) {
+                        isLongPress = false;
+                        return;
+                    }
+                    if(!e.target.closest('button') && !e.target.closest('input')) setTurn(i);
                 };
                 
                 const scoreColorClass = gameMode === '10000' && p.score >= 10000 ? 'text-red-500' : (gameMode==='scrabble' ? 'text-[#5c2e0e]' : 'text-white');
                 const nameColorClass = isActive && gameMode==='10000' ? 'gold-text' : (isActive && gameMode==='scrabble' ? 'text-[#8b4513]' : normalTextColor);
                 const playIconColor = gameMode === 'scrabble' ? 'text-[#8b4513]' : 'text-yellow-400';
+
+                const isFirst = i === 0;
+                const isLast = i === players.length - 1;
+                const buttonColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-[#8b4513]' : 'text-white/30 hover:text-white';
+                const deleteColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-red-600' : 'text-white/30 hover:text-red-400';
 
                 div.innerHTML = `
                     <div class="flex items-center space-x-4">
@@ -475,9 +853,16 @@
                             <div class="font-bold text-xl ${nameColorClass}">${p.name}</div>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 md:space-x-3">
                         <div class="text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>
-                        <button onclick="removePlayer(${p.id})" class="${gameMode==='scrabble' ? 'text-[#8b4513]/50 hover:text-red-600' : 'text-white/30 hover:text-red-400'} p-2"><i class="fa-solid fa-xmark"></i></button>
+                        
+                        <!-- Actions -->
+                        <div class="flex items-center space-x-1">
+                            <button onclick="openPlayerHistoryModal(${p.id}); event.stopPropagation();" class="${buttonColor} p-2" title="Historique du joueur"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                            <button onclick="movePlayer(${i}, -1); event.stopPropagation();" ${isFirst ? 'disabled' : ''} class="${buttonColor} p-2 disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le haut"><i class="fa-solid fa-chevron-up"></i></button>
+                            <button onclick="movePlayer(${i}, 1); event.stopPropagation();" ${isLast ? 'disabled' : ''} class="${buttonColor} p-2 disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le bas"><i class="fa-solid fa-chevron-down"></i></button>
+                            <button onclick="removePlayer(${p.id}); event.stopPropagation();" class="${deleteColor} p-2" title="Supprimer le joueur"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
                     </div>
                 `;
                 list.appendChild(div);
@@ -485,9 +870,32 @@
         }
 
         // --- INIT ---
+        function loadState() {
+            try {
+                const saved = localStorage.getItem("compteur_jeux_state");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    gameMode = parsed.gameMode || "menu";
+                    players = parsed.players || [];
+                    currentTurn = parsed.currentTurn || 0;
+                    history = parsed.history || [];
+                    
+                    // S'assurer que chaque joueur a un historique de scores initialisé
+                    players.forEach(p => {
+                        if (!p.scoresHistory) {
+                            p.scoresHistory = p.score > 0 ? [p.score] : [];
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Erreur lors du chargement de l'état local:", e);
+            }
+        }
+
+        loadState();
         applyGameModeView();
         connectWebSocket();
-        if(players.length === 0) players = [{ id: 1, name: "Joueur 1", score: 0 }];
+        if(players.length === 0) players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
         render();
 
         // --- PWA SERVICE WORKER ---
