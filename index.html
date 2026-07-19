@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1b5e20">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Thèmes Généraux */
@@ -44,7 +45,17 @@
     
     <!-- VIEW: MENU -->
     <div id="view-menu" class="max-w-2xl mx-auto text-center space-y-8 mt-12 hidden-view">
-        <h1 class="text-4xl md:text-5xl font-bold gold-text tracking-wider mb-12">Jeux de Société</h1>
+        <div class="flex justify-between items-center px-4 mb-12 relative">
+            <div class="w-8"></div> <!-- spacer -->
+            <h1 class="text-4xl md:text-5xl font-bold gold-text tracking-wider">Jeux de Société</h1>
+            <button onclick="openSupabaseModal()" class="text-slate-400 hover:text-white transition duration-200 text-2xl relative" title="Configuration Cloud (Supabase)">
+                <i class="fa-solid fa-cloud" id="cloudStatusIconMenu"></i>
+                <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-slate-400" id="cloudStatusPing"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-slate-500" id="cloudStatusDot"></span>
+                </span>
+            </button>
+        </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
             <button onclick="setGameMode('10000')" class="menu-btn bg-gradient-to-br from-green-800 to-green-900 border-4 border-yellow-600 rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center space-y-4">
@@ -74,7 +85,11 @@
                 <header class="flex justify-between items-center py-2 border-b border-slate-700 pb-4">
                     <button onclick="setGameMode('menu')" class="text-white bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i> Menu</button>
                     <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-wider">📈 STATS & RIVALITÉS</h1>
-                    <button onclick="clearStats()" class="text-red-400 hover:text-red-300 text-sm bg-red-950/40 px-3 py-2 rounded"><i class="fa-solid fa-trash-can"></i> Effacer</button>
+                    <div class="flex space-x-2">
+                        <button onclick="syncData()" id="syncBtnStats" class="text-white hover:text-yellow-400 bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm hidden" title="Forcer la synchronisation en ligne"><i class="fa-solid fa-arrows-rotate"></i></button>
+                        <button onclick="openSupabaseModal()" class="text-slate-400 hover:text-white bg-slate-700/60 hover:bg-slate-700 px-3 py-2 rounded text-sm" title="Statut Cloud"><i class="fa-solid fa-cloud" id="cloudStatusIconStats"></i></button>
+                        <button onclick="clearStats()" class="text-red-400 hover:text-red-300 text-sm bg-red-950/40 px-3 py-2 rounded" title="Effacer"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
                 </header>
 
                 <!-- Onglets de sélection du jeu -->
@@ -127,7 +142,10 @@
                 <header class="flex justify-between items-center py-2 border-b border-green-800 pb-4">
                     <button onclick="setGameMode('menu')" class="text-white bg-black/40 hover:bg-black/60 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i> Menu</button>
                     <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-wider">🎲 LE 10 000 🎲</h1>
-                    <div class="w-16"></div> <!-- spacer -->
+                    <div class="flex space-x-2">
+                        <button onclick="syncData()" id="syncBtn10000" class="text-white hover:text-yellow-400 bg-black/40 hover:bg-black/60 px-3 py-2 rounded text-sm hidden" title="Forcer la synchronisation en ligne"><i class="fa-solid fa-arrows-rotate"></i></button>
+                        <button onclick="openSupabaseModal()" class="text-slate-400 hover:text-white bg-black/40 hover:bg-black/60 px-3 py-2 rounded text-sm" title="Statut Cloud"><i class="fa-solid fa-cloud" id="cloudStatusIcon10000"></i></button>
+                    </div>
                 </header>
 
                 <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-black/40 p-3 rounded-lg border border-green-900/50 shadow-inner">
@@ -187,7 +205,10 @@
                 <header class="flex justify-between items-center py-2 border-b border-[#8b4513] pb-4">
                     <button onclick="setGameMode('menu')" class="text-[#3e2723] bg-[#ffdead]/50 hover:bg-[#ffdead] px-3 py-2 rounded text-sm font-bold"><i class="fa-solid fa-arrow-left"></i> Menu</button>
                     <h1 class="text-2xl md:text-3xl font-bold text-[#5c2e0e] tracking-wider uppercase" style="font-family: Arial, sans-serif;">Scrabble</h1>
-                    <div class="w-16"></div>
+                    <div class="flex space-x-2">
+                        <button onclick="syncData()" id="syncBtnScrabble" class="text-[#3e2723] hover:text-[#5c2e0e] bg-[#ffdead]/50 hover:bg-[#ffdead] px-3 py-2 rounded text-sm hidden" title="Forcer la synchronisation en ligne"><i class="fa-solid fa-arrows-rotate"></i></button>
+                        <button onclick="openSupabaseModal()" class="text-[#3e2723] hover:text-[#5c2e0e] bg-[#ffdead]/50 hover:bg-[#ffdead] px-3 py-2 rounded text-sm" title="Statut Cloud"><i class="fa-solid fa-cloud" id="cloudStatusIconScrabble"></i></button>
+                    </div>
                 </header>
 
                 <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-[#8b4513]/20 p-3 rounded-lg border border-[#8b4513]/50 shadow-inner">
@@ -259,6 +280,36 @@
         J'écoute...
     </div>
 
+    <!-- MODAL: CONFIGURATION SUPABASE -->
+    <div id="supabaseModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[9999] hidden-view font-sans">
+        <div class="bg-[#1e1e1e] text-white rounded-2xl w-full max-w-md border-2 border-slate-700 overflow-hidden shadow-2xl flex flex-col font-sans">
+            <header class="p-4 border-b border-slate-700 bg-black/40 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-yellow-400 font-serif"><i class="fa-solid fa-cloud mr-2"></i>Configuration Cloud</h3>
+                <button onclick="closeSupabaseModal()" class="text-slate-400 hover:text-white text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-slate-300">
+                    Connectez l'application à votre projet **Supabase** gratuit pour synchroniser vos données entre votre ordinateur et votre téléphone.
+                </p>
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide">URL Supabase</label>
+                    <input type="text" id="supabaseUrlInput" placeholder="https://xxxx.supabase.co" class="w-full bg-black/50 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500 font-mono">
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide">Clé Publique Anon</label>
+                    <textarea id="supabaseKeyInput" placeholder="eyJhbGciOi..." rows="3" class="w-full bg-black/50 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500 font-mono resize-none"></textarea>
+                </div>
+                <div id="supabaseModalError" class="text-xs text-red-400 font-semibold hidden"></div>
+            </div>
+            
+            <footer class="p-4 border-t border-slate-700 bg-black/20 flex justify-end space-x-3">
+                <button onclick="disconnectSupabase()" class="text-red-400 hover:text-red-300 px-4 py-2 font-bold text-sm bg-red-950/20 rounded-lg border border-red-900/30">Déconnecter</button>
+                <button onclick="saveSupabaseConfig()" class="bg-yellow-600 hover:bg-yellow-500 text-black px-5 py-2 rounded-lg font-bold text-sm">Enregistrer</button>
+            </footer>
+        </div>
+    </div>
+
     <!-- MODAL: HISTORIQUE / MODIFICATION SCORES -->
     <div id="historyModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[9999] hidden-view">
         <div class="bg-[#1e1e1e] text-white rounded-2xl w-full max-w-md border-2 border-slate-700 overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
@@ -293,6 +344,12 @@
         let pressTimer;
         let isLongPress = false;
 
+        // --- SUPABASE CLOUD STATE ---
+        let supabaseUrl = "";
+        let supabaseKey = "";
+        let supabaseClient = null;
+        let isSyncing = false;
+
         // --- WEBSOCKET SYNC ---
         let ws;
         function connectWebSocket() {
@@ -325,6 +382,288 @@
             };
         }
 
+        // --- SUPABASE CONFIG & INITIALIZATION ---
+        function initSupabase() {
+            try {
+                supabaseUrl = localStorage.getItem("compteur_jeux_supabase_url") || "";
+                supabaseKey = localStorage.getItem("compteur_jeux_supabase_key") || "";
+                
+                // Pré-remplir l'URL si elle n'a pas encore été configurée
+                if (!supabaseUrl && window.location.hostname.endsWith('github.io')) {
+                    supabaseUrl = "https://umfsneguvtxzxdlczeky.supabase.co";
+                }
+                
+                if (supabaseUrl && supabaseKey) {
+                    if (typeof supabase !== 'undefined') {
+                        supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+                        updateCloudStatus(true);
+                    } else {
+                        console.error("Supabase SDK non chargé !");
+                        updateCloudStatus(false);
+                    }
+                } else {
+                    updateCloudStatus(false);
+                }
+            } catch (e) {
+                console.error("Erreur d'initialisation de Supabase:", e);
+                updateCloudStatus(false);
+            }
+        }
+
+        function updateCloudStatus(connected) {
+            const icons = ['cloudStatusIconMenu', 'cloudStatusIcon10000', 'cloudStatusIconScrabble', 'cloudStatusIconStats'];
+            icons.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (connected) {
+                        el.className = "fa-solid fa-cloud text-green-500";
+                    } else {
+                        el.className = "fa-solid fa-cloud text-slate-400";
+                    }
+                }
+            });
+            
+            // Dot et ping sur le menu principal
+            const ping = document.getElementById('cloudStatusPing');
+            const dot = document.getElementById('cloudStatusDot');
+            if (ping && dot) {
+                if (connected) {
+                    ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75";
+                    dot.className = "relative inline-flex rounded-full h-3 w-3 bg-green-500";
+                } else {
+                    ping.className = "hidden";
+                    dot.className = "relative inline-flex rounded-full h-3 w-3 bg-slate-500";
+                }
+            }
+            
+            // Afficher ou masquer les boutons de synchro manuelle
+            const syncButtons = ['syncBtn10000', 'syncBtnScrabble', 'syncBtnStats'];
+            syncButtons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    if (connected) btn.classList.remove('hidden');
+                    else btn.classList.add('hidden');
+                }
+            });
+        }
+
+        function openSupabaseModal() {
+            document.getElementById('supabaseUrlInput').value = supabaseUrl || "https://umfsneguvtxzxdlczeky.supabase.co";
+            document.getElementById('supabaseKeyInput').value = supabaseKey || "";
+            document.getElementById('supabaseModalError').classList.add('hidden');
+            document.getElementById('supabaseModal').classList.remove('hidden-view');
+        }
+
+        function closeSupabaseModal() {
+            document.getElementById('supabaseModal').classList.add('hidden-view');
+        }
+
+        async function saveSupabaseConfig() {
+            const urlInput = document.getElementById('supabaseUrlInput').value.trim();
+            const keyInput = document.getElementById('supabaseKeyInput').value.trim();
+            const errorDiv = document.getElementById('supabaseModalError');
+            
+            if (!urlInput || !keyInput) {
+                errorDiv.innerText = "Veuillez remplir l'URL et la Clé.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                // Tenter d'initialiser et de tester la connexion
+                const client = supabase.createClient(urlInput, keyInput);
+                const { data, error } = await client.from('rivalries').select('id').limit(1);
+                
+                if (error) throw error;
+                
+                // Connexion réussie ! Sauvegarder
+                localStorage.setItem("compteur_jeux_supabase_url", urlInput);
+                localStorage.setItem("compteur_jeux_supabase_key", keyInput);
+                
+                supabaseUrl = urlInput;
+                supabaseKey = keyInput;
+                supabaseClient = client;
+                
+                updateCloudStatus(true);
+                closeSupabaseModal();
+                
+                // Lancer une synchronisation globale
+                await syncData();
+                alert("Connexion Cloud Supabase établie avec succès ! Vos données sont synchronisées.");
+            } catch (e) {
+                console.error("Connexion Supabase échouée:", e);
+                errorDiv.innerText = "Connexion échouée : Vérifiez l'URL, la clé, et que les tables ont été créées sur Supabase.";
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function disconnectSupabase() {
+            if (confirm("Voulez-vous déconnecter Supabase ? Les données resteront sauvegardées localement.")) {
+                localStorage.removeItem("compteur_jeux_supabase_url");
+                localStorage.removeItem("compteur_jeux_supabase_key");
+                supabaseUrl = "";
+                supabaseKey = "";
+                supabaseClient = null;
+                updateCloudStatus(false);
+                closeSupabaseModal();
+            }
+        }
+
+        // --- SYNCHRONISATION CLOUD & LOCAL ---
+        async function syncData() {
+            if (!supabaseClient || isSyncing) return;
+            isSyncing = true;
+            console.log("Début de la synchronisation cloud...");
+            
+            // Mettre l'icône de synchro en rotation animée
+            const syncIcons = ['syncBtn10000', 'syncBtnScrabble', 'syncBtnStats'];
+            syncIcons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate animate-spin"></i>';
+            });
+            
+            try {
+                // 1. Synchroniser les rivalités
+                const localRivalries = getRivalries();
+                const { data: remoteRivalries, error: err1 } = await supabaseClient.from('rivalries').select('*');
+                if (err1) throw err1;
+                
+                const mergedRivalries = [...localRivalries];
+                if (remoteRivalries) {
+                    remoteRivalries.forEach(rr => {
+                        const idx = mergedRivalries.findIndex(lr => lr.id == rr.id);
+                        const mapped = { id: rr.id, name: rr.name, playerNames: rr.player_names };
+                        if (idx === -1) {
+                            mergedRivalries.push(mapped);
+                        } else {
+                            mergedRivalries[idx] = mapped;
+                        }
+                    });
+                }
+                
+                localStorage.setItem("compteur_jeux_rivalries", JSON.stringify(mergedRivalries));
+                
+                for (const r of mergedRivalries) {
+                    await supabaseClient.from('rivalries').upsert({
+                        id: r.id,
+                        name: r.name,
+                        player_names: r.playerNames
+                    });
+                }
+                
+                updateRivalrySelects();
+                
+                // 2. Synchroniser l'historique
+                const localStats = JSON.parse(localStorage.getItem("compteur_jeux_stats") || "[]");
+                const { data: remoteStats, error: err2 } = await supabaseClient.from('games_history').select('*');
+                if (err2) throw err2;
+                
+                const mergedStats = [...localStats];
+                if (remoteStats) {
+                    remoteStats.forEach(rs => {
+                        const idx = mergedStats.findIndex(ls => ls.id == rs.id);
+                        const mapped = {
+                            id: rs.id,
+                            gameMode: rs.game_mode,
+                            date: rs.date,
+                            winner: rs.winner,
+                            players: rs.players
+                        };
+                        if (idx === -1) {
+                            mergedStats.push(mapped);
+                        }
+                    });
+                }
+                
+                localStorage.setItem("compteur_jeux_stats", JSON.stringify(mergedStats));
+                
+                for (const s of mergedStats) {
+                    await supabaseClient.from('games_history').upsert({
+                        id: s.id,
+                        game_mode: s.gameMode,
+                        date: s.date,
+                        winner: s.winner,
+                        players: s.players
+                    });
+                }
+                
+                // 3. Synchroniser la partie en cours
+                if (gameMode === '10000' || gameMode === 'scrabble') {
+                    const { data: remoteActive, error: err3 } = await supabaseClient
+                        .from('active_games')
+                        .select('*')
+                        .eq('game_mode', gameMode)
+                        .single();
+                        
+                    if (!err3 && remoteActive) {
+                        const localSavedStr = localStorage.getItem(`compteur_jeux_state_${gameMode}`);
+                        let localTime = 0;
+                        if (localSavedStr) {
+                            const parsedLocal = JSON.parse(localSavedStr);
+                            localTime = parsedLocal.updatedAt || 0;
+                        }
+                        
+                        const remoteTime = new Date(remoteActive.updated_at).getTime();
+                        
+                        if (remoteTime > localTime) {
+                            console.log("Mise à jour de la table de jeu depuis le cloud...");
+                            players = remoteActive.players || [];
+                            currentTurn = remoteActive.current_turn || 0;
+                            history = remoteActive.history || [];
+                            
+                            players.forEach(p => {
+                                if (!p.scoresHistory) {
+                                    p.scoresHistory = p.score > 0 ? [p.score] : [];
+                                }
+                            });
+                            
+                            // Sauvegarde locale du nouvel état cloud
+                            localStorage.setItem(`compteur_jeux_state_${gameMode}`, JSON.stringify({
+                                players,
+                                currentTurn,
+                                history,
+                                updatedAt: remoteTime
+                            }));
+                        } else {
+                            await pushActiveGameToSupabase();
+                        }
+                    } else {
+                        await pushActiveGameToSupabase();
+                    }
+                }
+                
+                console.log("Synchronisation cloud terminée !");
+                render();
+                if (gameMode === 'stats') {
+                    renderStats();
+                }
+            } catch (e) {
+                console.error("Erreur pendant la synchronisation cloud:", e);
+            } finally {
+                isSyncing = false;
+                // Rétablir l'icône de synchro
+                syncIcons.forEach(id => {
+                    const btn = document.getElementById(id);
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
+                });
+            }
+        }
+
+        async function pushActiveGameToSupabase() {
+            if (!supabaseClient || (gameMode !== '10000' && gameMode !== 'scrabble')) return;
+            try {
+                await supabaseClient.from('active_games').upsert({
+                    game_mode: gameMode,
+                    players: players,
+                    current_turn: currentTurn,
+                    history: history,
+                    updated_at: new Date().toISOString()
+                });
+            } catch (e) {
+                console.error("Erreur de poussée de l'état actif vers Supabase:", e);
+            }
+        }
+
         // --- LOCAL STORAGE PERSISTENCE & LOAD ---
         function saveState() {
             try {
@@ -333,8 +672,10 @@
                     localStorage.setItem(`compteur_jeux_state_${gameMode}`, JSON.stringify({
                         players,
                         currentTurn,
-                        history
+                        history,
+                        updatedAt: Date.now()
                     }));
+                    pushActiveGameToSupabase();
                 }
             } catch (e) {
                 console.error("Erreur de sauvegarde de l'état:", e);
@@ -413,20 +754,32 @@
             const playerNames = players.map(p => p.name);
             const rivalries = getRivalries();
             
+            let r;
             const existingIdx = rivalries.findIndex(r => r.name.toLowerCase() === name.trim().toLowerCase());
             if (existingIdx !== -1) {
                 if (!confirm(`La rivalité "${name}" existe déjà. Voulez-vous la remplacer ?`)) return;
                 rivalries[existingIdx].playerNames = playerNames;
+                r = rivalries[existingIdx];
             } else {
-                rivalries.push({
+                r = {
                     id: Date.now(),
                     name: name.trim(),
                     playerNames: playerNames
-                });
+                };
+                rivalries.push(r);
             }
             
             localStorage.setItem("compteur_jeux_rivalries", JSON.stringify(rivalries));
             updateRivalrySelects();
+            
+            if (supabaseClient) {
+                supabaseClient.from('rivalries').upsert({
+                    id: r.id,
+                    name: r.name,
+                    player_names: r.playerNames
+                }).catch(e => console.error("Erreur synchro rivalité:", e));
+            }
+            
             alert(`Rivalité "${name}" enregistrée !`);
         }
 
@@ -555,6 +908,16 @@
                 
                 stats.push(gameRecord);
                 localStorage.setItem("compteur_jeux_stats", JSON.stringify(stats));
+                
+                if (supabaseClient) {
+                    supabaseClient.from('games_history').insert({
+                        id: gameRecord.id,
+                        game_mode: gameRecord.gameMode,
+                        date: gameRecord.date,
+                        winner: gameRecord.winner,
+                        players: gameRecord.players
+                    }).catch(e => console.error("Erreur synchro stats:", e));
+                }
             } catch (e) {
                 console.error("Erreur d'enregistrement des statistiques:", e);
             }
@@ -1109,6 +1472,9 @@
         // --- INIT ---
         function initApp() {
             try {
+                // Initialiser Supabase en premier
+                initSupabase();
+                
                 const lastMode = localStorage.getItem("compteur_jeux_active_mode");
                 gameMode = lastMode || "menu";
                 
@@ -1123,6 +1489,11 @@
                 
                 // Charger la liste des rivalités enregistrées pour les selects
                 updateRivalrySelects();
+                
+                // Lancer la synchronisation en arrière-plan si Supabase est connecté
+                if (supabaseClient) {
+                    syncData();
+                }
             } catch (e) {
                 console.error("Erreur d'initialisation de l'app:", e);
             }

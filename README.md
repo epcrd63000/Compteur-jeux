@@ -42,52 +42,27 @@ L'app est servie automatiquement à : **https://epcrd63000.github.io/Compteur-je
 
 ## ⚙️ Configuration Supabase (Optionnel)
 
-Pour activer la synchronisation du score en cloud :
+Pour activer la synchronisation en ligne et le partage des scores/rivalités entre vos appareils :
 
 ### 1. **Créer un projet Supabase**
-- Aller sur [supabase.com](https://supabase.com)
-- Créer un nouveau projet
+- Allez sur [supabase.com](https://supabase.com) et créez un projet gratuit.
 
-### 2. **Créer la table**
-Dans l'éditeur SQL de Supabase, exécutez :
+### 2. **Créer les tables**
+Dans l'onglet **SQL Editor** de votre console Supabase, exécutez le script contenu dans le fichier [supabase-schema.sql](file:///c:/Users/epcrd/Documents/code/04_Archive/Compteur%20jeux/supabase-schema.sql). Ce script crée les tables suivantes :
+- `active_games` (Parties actives de Scrabble et 10 000)
+- `rivalries` (Groupes de rivalité sauvegardés)
+- `games_history` (Historique des résultats de parties)
 
-```sql
-CREATE TABLE scores (
-  id INT PRIMARY KEY,
-  score INT4 NOT NULL DEFAULT 0,
-  created_at TIMESTAMP DEFAULT now(),
-  updated_at TIMESTAMP DEFAULT now()
-);
+### 3. **Récupérer les identifiants**
+- **URL Supabase** : Settings → API → Project URL (ex: `https://umfsneguvtxzxdlczeky.supabase.co`)
+- **Clé publique anon** : Settings → API → `anon` public key
 
--- Insérer un record par défaut
-INSERT INTO scores (id, score) VALUES (1, 0);
-```
+### 4. **Configurer dans l'application**
+- Cliquez sur l'icône **Nuage** (grise par défaut) dans le menu principal ou dans l'en-tête de votre jeu.
+- Collez votre **URL Supabase** et votre **Clé Publique Anon** dans les champs prévus.
+- Cliquez sur **Enregistrer**. L'icône du nuage passera au vert, confirmant que la synchronisation est active !
 
-### 3. **Configurer les politiques RLS (Row Level Security)**
-Pour permettre l'accès anonyme (optionnel mais recommandé) :
-
-```sql
-ALTER TABLE scores ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Autoriser la lecture publique"
-  ON scores FOR SELECT
-  USING (true);
-
-CREATE POLICY "Autoriser la modification publique"
-  ON scores FOR UPDATE
-  USING (true);
-```
-
-### 4. **Récupérer les identifiants**
-- URL Supabase : Settings → API → Project URL
-- Clé anonyme : Settings → API → `anon` public key
-
-### 5. **Configurer dans l'app**
-Au premier lancement, une modale s'affiche. Remplissez :
-- **URL Supabase** : `https://xyzcompany.supabase.co`
-- **Clé Anonyme** : votre clé publique
-
-Les identifiants seront stockés dans `localStorage` de votre navigateur.
+Vos identifiants seront stockés de manière sécurisée dans le stockage local du navigateur de votre appareil. Pour synchroniser un autre appareil (comme votre téléphone), ouvrez l'application dessus et effectuez la même manipulation.
 
 ## 🎯 Utilisation
 
