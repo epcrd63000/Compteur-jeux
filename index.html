@@ -39,9 +39,34 @@
         /* Micro & Toast */
         .mic-active { animation: pulse-recording 1.5s infinite; color: white !important; background-color: #ef4444; }
         @keyframes pulse-recording { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); } 70% { transform: scale(1.15); box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        /* Ajustements de Responsivité (Mobile) */
+        @media (max-width: 640px) {
+            .billiard-table, .scrabble-table {
+                border-width: 8px !important;
+                padding: 1rem !important;
+            }
+            .wood-border, .wood-border-scrabble {
+                padding: 6px !important;
+            }
+        }
+        @media (max-width: 480px) {
+            .btn-dice {
+                padding-top: 0.6rem !important;
+                padding-bottom: 0.6rem !important;
+                font-size: 1.125rem !important;
+                border-radius: 10px !important;
+            }
+            .btn-tile {
+                padding-top: 0.6rem !important;
+                padding-bottom: 0.6rem !important;
+                font-size: 1.25rem !important;
+                border-radius: 6px !important;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen p-2 md:p-6 pb-[450px] md:pb-80" style="margin: 0 auto; max-w-2xl">
+<body class="min-h-screen p-2 md:p-6" style="margin: 0 auto; max-w-2xl">
     
     <!-- VIEW: MENU -->
     <div id="view-menu" class="max-w-2xl mx-auto text-center space-y-8 mt-12 hidden-view">
@@ -874,19 +899,25 @@
             document.getElementById('view-scrabble').classList.add('hidden-view');
             document.getElementById('view-stats').classList.add('hidden-view');
             
+            const isMobile = window.innerWidth < 768;
+            
             if (gameMode === '10000') {
                 document.getElementById('view-10000').classList.remove('hidden-view');
                 document.body.style.background = "#111";
+                document.body.style.paddingBottom = isMobile ? "240px" : "210px";
             } else if (gameMode === 'scrabble') {
                 document.getElementById('view-scrabble').classList.remove('hidden-view');
                 document.body.style.background = "#2c1e16"; // Dark brown for scrabble bg
+                document.body.style.paddingBottom = isMobile ? "325px" : "280px";
             } else if (gameMode === 'stats') {
                 document.getElementById('view-stats').classList.remove('hidden-view');
                 document.body.style.background = "#111";
+                document.body.style.paddingBottom = "30px";
                 renderStats();
             } else {
                 document.getElementById('view-menu').classList.remove('hidden-view');
                 document.body.style.background = "#111";
+                document.body.style.paddingBottom = "30px";
             }
             
             stopMic(); // Stop mic when changing view
@@ -1418,7 +1449,7 @@
             players.forEach((p, i) => {
                 const isActive = i === currentTurn;
                 const div = document.createElement('div');
-                div.className = `flex justify-between items-center ${gameMode==='scrabble' ? 'bg-[#ffdead]/80' : 'bg-black/60'} p-4 rounded-xl border-2 transition cursor-pointer ${isActive ? activeClass : 'border-transparent'}`;
+                div.className = `flex justify-between items-center ${gameMode==='scrabble' ? 'bg-[#ffdead]/80' : 'bg-black/60'} p-3 md:p-4 rounded-xl border-2 transition cursor-pointer ${isActive ? activeClass : 'border-transparent'}`;
                 
                 // Détection du clic maintenu (Long Press) de 600ms
                 div.setAttribute('onmousedown', `startPress(${p.id})`);
@@ -1439,30 +1470,30 @@
                 const scoreColorClass = gameMode === '10000' && p.score >= 10000 ? 'text-red-500' : (gameMode==='scrabble' ? 'text-[#5c2e0e]' : 'text-white');
                 const nameColorClass = isActive && gameMode==='10000' ? 'gold-text' : (isActive && gameMode==='scrabble' ? 'text-[#8b4513]' : normalTextColor);
                 const playIconColor = gameMode === 'scrabble' ? 'text-[#8b4513]' : 'text-yellow-400';
-
+ 
                 const isFirst = i === 0;
                 const isLast = i === players.length - 1;
                 const buttonColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-[#8b4513]' : 'text-white/30 hover:text-white';
                 const deleteColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-red-600' : 'text-white/30 hover:text-red-400';
-
+ 
                 div.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <div class="${isActive ? playIconColor : indexColor} w-6 text-center font-bold text-xl">
+                    <div class="flex items-center space-x-2 md:space-x-4">
+                        <div class="${isActive ? playIconColor : indexColor} w-6 text-center font-bold text-lg md:text-xl">
                             ${isActive ? '<i class="fa-solid fa-play"></i>' : (i+1)}
                         </div>
                         <div>
-                            <div class="font-bold text-xl ${nameColorClass}">${p.name}</div>
+                            <div class="font-bold text-lg md:text-xl ${nameColorClass}">${p.name}</div>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2 md:space-x-3">
-                        <div class="text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>
+                    <div class="flex items-center space-x-1.5 md:space-x-3">
+                        <div class="text-2xl md:text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>
                         
                         <!-- Actions -->
-                        <div class="flex items-center space-x-1">
-                            <button onclick="openPlayerHistoryModal(${p.id}); event.stopPropagation();" class="${buttonColor} p-2" title="Historique du joueur"><i class="fa-solid fa-clock-rotate-left"></i></button>
-                            <button onclick="movePlayer(${i}, -1); event.stopPropagation();" ${isFirst ? 'disabled' : ''} class="${buttonColor} p-2 disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le haut"><i class="fa-solid fa-chevron-up"></i></button>
-                            <button onclick="movePlayer(${i}, 1); event.stopPropagation();" ${isLast ? 'disabled' : ''} class="${buttonColor} p-2 disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le bas"><i class="fa-solid fa-chevron-down"></i></button>
-                            <button onclick="removePlayer(${p.id}); event.stopPropagation();" class="${deleteColor} p-2" title="Supprimer le joueur"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="flex items-center space-x-0.5 md:space-x-1">
+                            <button onclick="openPlayerHistoryModal(${p.id}); event.stopPropagation();" class="${buttonColor} p-1 md:p-2 text-sm md:text-base" title="Historique du joueur"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                            <button onclick="movePlayer(${i}, -1); event.stopPropagation();" ${isFirst ? 'disabled' : ''} class="${buttonColor} p-1 md:p-2 text-sm md:text-base disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le haut"><i class="fa-solid fa-chevron-up"></i></button>
+                            <button onclick="movePlayer(${i}, 1); event.stopPropagation();" ${isLast ? 'disabled' : ''} class="${buttonColor} p-1 md:p-2 text-sm md:text-base disabled:opacity-10 disabled:pointer-events-none" title="Déplacer vers le bas"><i class="fa-solid fa-chevron-down"></i></button>
+                            <button onclick="removePlayer(${p.id}); event.stopPropagation();" class="${deleteColor} p-1 md:p-2 text-sm md:text-base" title="Supprimer le joueur"><i class="fa-solid fa-xmark"></i></button>
                         </div>
                     </div>
                 `;
