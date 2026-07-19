@@ -454,6 +454,50 @@
         </div>
     </div>
 
+    <!-- MODAL: PAVÉ NUMÉRIQUE RAPIDE (POUR LE 10 000) -->
+    <div id="quickKeypadModal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden-view z-50 p-4 font-sans">
+        <div class="bg-slate-900 border-4 border-yellow-500 rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-4">
+            <div class="text-center">
+                <h3 class="text-lg font-bold text-yellow-500 uppercase tracking-wider"><i class="fa-solid fa-keyboard mr-2"></i>Saisie rapide</h3>
+                <p id="quickKeypadPlayerName" class="text-slate-400 text-xs mt-1">Joueur : --</p>
+            </div>
+            
+            <!-- Afficheur de la valeur saisie -->
+            <div class="bg-black/50 border border-slate-700/50 rounded-xl p-3 text-center">
+                <div id="quickKeypadDisplay" class="text-3xl font-black font-mono text-white">0</div>
+            </div>
+
+            <!-- Grille du pavé numérique -->
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="pressQuickKeypad(1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">1</button>
+                <button onclick="pressQuickKeypad(2)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">2</button>
+                <button onclick="pressQuickKeypad(3)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">3</button>
+                
+                <button onclick="pressQuickKeypad(4)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">4</button>
+                <button onclick="pressQuickKeypad(5)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">5</button>
+                <button onclick="pressQuickKeypad(6)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">6</button>
+                
+                <button onclick="pressQuickKeypad(7)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">7</button>
+                <button onclick="pressQuickKeypad(8)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">8</button>
+                <button onclick="pressQuickKeypad(9)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">9</button>
+                
+                <button onclick="clearQuickKeypad()" class="bg-red-900/60 hover:bg-red-900 text-red-200 font-bold py-3 rounded-xl text-sm transition">C</button>
+                <button onclick="pressQuickKeypad(0)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition">0</button>
+                <button onclick="backspaceQuickKeypad()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-lg transition"><i class="fa-solid fa-backspace"></i></button>
+            </div>
+
+            <!-- Actions de validation -->
+            <div class="flex space-x-2">
+                <button onclick="validateQuickKeypad()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow transition">
+                    Ajouter
+                </button>
+                <button onclick="closeQuickKeypad()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-3 rounded-xl transition">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- STATE ---
         let gameMode = "menu"; // "menu", "10000", "scrabble", "stats"
@@ -1643,7 +1687,19 @@
                 const buttonColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-[#8b4513]' : 'text-white/30 hover:text-white';
                 const deleteColor = gameMode === 'scrabble' ? 'text-[#8b4513]/50 hover:text-red-600' : 'text-white/30 hover:text-red-400';
  
-                const scoreHtml = gameMode === 'dame_chinoise' ? '' : `<div class="text-2xl md:text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>`;
+                let scoreHtml = '';
+                if (gameMode !== 'dame_chinoise') {
+                    if (gameMode === '10000') {
+                        scoreHtml = `
+                            <div class="flex items-center space-x-1.5">
+                                <div class="text-2xl md:text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>
+                                <button onclick="openQuickKeypad(${p.id}); event.stopPropagation();" class="text-slate-400 hover:text-yellow-400 p-1.5 text-sm md:text-base transition" title="Saisir des points directement"><i class="fa-solid fa-keyboard"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        scoreHtml = `<div class="text-2xl md:text-4xl font-black ${scoreColorClass} font-mono">${p.score}</div>`;
+                    }
+                }
                 const historyBtnHtml = gameMode === 'dame_chinoise' ? '' : `<button onclick="openPlayerHistoryModal(${p.id}); event.stopPropagation();" class="${buttonColor} p-1 md:p-2 text-sm md:text-base" title="Historique du joueur"><i class="fa-solid fa-clock-rotate-left"></i></button>`;
 
                 div.innerHTML = `
@@ -1722,6 +1778,82 @@
                 }
             }
             spin();
+        }
+
+        // --- PAVÉ NUMÉRIQUE RAPIDE (LE 10 000) ---
+        let activeKeypadPlayerId = null;
+        let keypadInputValue = "0";
+
+        function openQuickKeypad(playerId) {
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+            
+            activeKeypadPlayerId = playerId;
+            keypadInputValue = "0";
+            
+            const nameEl = document.getElementById('quickKeypadPlayerName');
+            const displayEl = document.getElementById('quickKeypadDisplay');
+            if (nameEl) nameEl.innerText = `Joueur : ${player.name}`;
+            if (displayEl) displayEl.innerText = "0";
+            
+            const modal = document.getElementById('quickKeypadModal');
+            if (modal) modal.classList.remove('hidden-view');
+        }
+
+        function closeQuickKeypad() {
+            const modal = document.getElementById('quickKeypadModal');
+            if (modal) modal.classList.add('hidden-view');
+            activeKeypadPlayerId = null;
+        }
+
+        function pressQuickKeypad(num) {
+            if (keypadInputValue === "0") {
+                keypadInputValue = num.toString();
+            } else {
+                keypadInputValue += num.toString();
+            }
+            if (keypadInputValue.length > 5) {
+                keypadInputValue = keypadInputValue.slice(0, 5);
+            }
+            const displayEl = document.getElementById('quickKeypadDisplay');
+            if (displayEl) displayEl.innerText = keypadInputValue;
+        }
+
+        function clearQuickKeypad() {
+            keypadInputValue = "0";
+            const displayEl = document.getElementById('quickKeypadDisplay');
+            if (displayEl) displayEl.innerText = "0";
+        }
+
+        function backspaceQuickKeypad() {
+            if (keypadInputValue.length > 1) {
+                keypadInputValue = keypadInputValue.slice(0, -1);
+            } else {
+                keypadInputValue = "0";
+            }
+            const displayEl = document.getElementById('quickKeypadDisplay');
+            if (displayEl) displayEl.innerText = keypadInputValue;
+        }
+
+        function validateQuickKeypad() {
+            const pts = parseInt(keypadInputValue) || 0;
+            if (pts > 0) {
+                const player = players.find(p => p.id === activeKeypadPlayerId);
+                if (player) {
+                    history.push(JSON.stringify({
+                        gameMode,
+                        players: JSON.parse(JSON.stringify(players)),
+                        currentTurn
+                    }));
+                    
+                    player.scoresHistory.push(pts);
+                    player.score = player.scoresHistory.reduce((sum, v) => sum + v, 0);
+                    
+                    broadcastState();
+                    render();
+                }
+            }
+            closeQuickKeypad();
         }
 
         // --- CLASSEMENT (DAMES CHINOISES) ---
