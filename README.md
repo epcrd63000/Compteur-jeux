@@ -7,16 +7,16 @@ Application web progressive pour le comptage multi-joueurs temps réel, avec sup
 ## ✨ Fonctionnalités principales
 
 ### Multi-Joueurs & Groupes 👥
-- ✅ **Gestion multi-joueurs** - Jusqu'à 10 joueurs par partie
-- ✅ **Gestion automatique des tours** - Passage au joueur suivant après scoring
-- ✅ **Réorganisation à la volée** - Ajustez l'ordre de passage des joueurs à tout moment à l'aide des boutons de déplacement (Haut/Bas)
-- ✅ **Persistance automatique** - Sauvegarde instantanée de la partie en cours dans le stockage local du navigateur (`localStorage`)
+- ✅ **Gestion multi-joueurs** - Jusqu'à 10 joueurs par table de jeu
+- ✅ **Rivalités (Groupes Sauvegardés)** - Créez et nommez des groupes de joueurs réguliers (ex: "La Famille", "Les Parents") pour configurer la table de jeu en un clic
+- ✅ **Réorganisation à la volée** - Modifiez l'ordre de passage des joueurs à tout moment via des boutons de déplacement (Haut/Bas)
+- ✅ **Compteurs séparés & Persistance** - Sauvegarde distincte automatique de la partie en cours pour le Scrabble et le 10 000 dans le stockage du navigateur (`localStorage`)
 
 ### Gameplay & Suivi des scores 🎲
-- ✅ **Boutons rapides** - Saisie en un clic (50, 100, 150... ou pavé numérique libre)
-- ✅ **Reconnaissance vocale** - Saisie des points par dictée vocale en français
-- ✅ **Historique par joueur (Long-clic)** - Maintenez le clic sur un joueur (ou utilisez le bouton dédié) pour afficher, modifier ou supprimer individuellement les points de chacun de ses tours
-- ✅ **Statistiques & Rivalités** - Suivi historique des victoires par joueur et outil de confrontation Face-à-Face pour analyser le ratio de victoires entre deux rivaux
+- ✅ **Boutons rapides** - Boutons de points préconfigurés (Le 10 000) ou pavé numérique avec historique interactif (Scrabble)
+- ✅ **Reconnaissance vocale** - Saisie vocale des points en français
+- ✅ **Historique par joueur (Long-clic)** - Maintenez le clic sur un joueur (ou cliquez sur le bouton Horloge) pour consulter, éditer ou supprimer les points saisis à chacun de ses tours
+- ✅ **Statistiques Ciblées** - Onglets de statistiques séparés par jeu avec filtre de rivalité pour n'analyser que les performances (victoires, points cumulés, moyenne) des parties disputées par le groupe sélectionné
 
 ### Technologie 🔧
 - ✅ **Mode offline-first robuste** - Le Service Worker met en cache l'ensemble des fichiers requis (y compris Tailwind et les icônes FontAwesome) pour un fonctionnement 100% autonome sans Internet

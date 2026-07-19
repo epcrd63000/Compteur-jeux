@@ -77,6 +77,12 @@
                     <button onclick="clearStats()" class="text-red-400 hover:text-red-300 text-sm bg-red-950/40 px-3 py-2 rounded"><i class="fa-solid fa-trash-can"></i> Effacer</button>
                 </header>
 
+                <!-- Onglets de sélection du jeu -->
+                <div class="flex border-b border-slate-700 text-sm font-sans">
+                    <button onclick="setStatsTab('10000')" id="statsTab10000" class="flex-1 py-3 text-center font-bold border-b-2 border-yellow-500 text-yellow-500">Le 10 000</button>
+                    <button onclick="setStatsTab('scrabble')" id="statsTabScrabble" class="flex-1 py-3 text-center font-bold border-b-2 border-transparent text-slate-400 hover:text-white">Scrabble</button>
+                </div>
+
                 <!-- Global Stats Overview -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-800/60 p-4 rounded-xl text-center border border-slate-700/50">
@@ -97,16 +103,17 @@
                     </div>
                 </div>
 
-                <!-- Face-to-Face Rivalries -->
-                <div class="space-y-3 border-t border-slate-700 pt-4">
-                    <h3 class="text-lg font-bold text-yellow-500"><i class="fa-solid fa-handshake-slash mr-2"></i>Rivalités (Face à Face)</h3>
-                    <div class="flex space-x-2">
-                        <select id="rivalPlayer1" class="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white" onchange="renderRivalry()"></select>
-                        <span class="flex items-center text-slate-400 font-bold">VS</span>
-                        <select id="rivalPlayer2" class="flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-2 text-white" onchange="renderRivalry()"></select>
+                <!-- Analyse de la Rivalité -->
+                <div class="space-y-3 border-t border-slate-700 pt-4 font-sans text-sm">
+                    <h3 class="text-lg font-bold text-yellow-500 font-serif"><i class="fa-solid fa-handshake-slash mr-2"></i>Analyse de Rivalités</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-slate-300 whitespace-nowrap">Filtrer par rivalité :</span>
+                        <select id="statsRivalrySelector" onchange="renderRivalry()" class="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white">
+                            <!-- Options remplies en JS -->
+                        </select>
                     </div>
-                    <div id="rivalryResult" class="bg-slate-800/40 p-4 rounded-xl text-center border border-slate-700/50 min-h-[80px] flex flex-col justify-center font-sans">
-                        Sélectionnez deux joueurs différents pour comparer leurs confrontations.
+                    <div id="rivalryResult" class="bg-slate-800/40 p-4 rounded-xl text-center border border-slate-700/50 min-h-[120px] flex flex-col justify-center text-slate-300">
+                        Sélectionnez une rivalité pour analyser ses parties.
                     </div>
                 </div>
             </div>
@@ -132,6 +139,17 @@
                         <button onclick="resetScores()" class="flex-1 md:flex-none text-blue-400 hover:text-blue-300 px-3 py-2 text-sm font-bold bg-black/30 rounded" title="Fin de partie (Scores à 0)"><i class="fa-solid fa-flag-checkered mr-1"></i> Fin de partie</button>
                         <button onclick="clearPlayers()" class="flex-1 md:flex-none text-red-400 hover:text-red-300 px-3 py-2 text-sm font-bold bg-black/30 rounded" title="Tout effacer"><i class="fa-solid fa-trash-can mr-1"></i> RAZ</button>
                     </div>
+                </div>
+
+                <!-- Gestion des Rivalités / Groupes (Le 10 000) -->
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-black/30 p-3 rounded-lg border border-green-950/30 text-sm font-sans">
+                    <div class="flex items-center space-x-2 w-full md:w-auto">
+                        <span class="text-slate-300 whitespace-nowrap">Rivalités :</span>
+                        <select id="rivalrySelect10000" onchange="loadRivalryGroup(this.value)" class="flex-1 md:w-48 bg-black/50 border border-green-700/50 rounded px-2 py-1 text-white text-sm">
+                            <!-- Options remplies en JS -->
+                        </select>
+                    </div>
+                    <button onclick="saveCurrentGroupAsRivalry()" class="text-yellow-500 hover:text-yellow-400 font-bold bg-black/20 border border-yellow-600/30 px-3 py-1 rounded text-xs flex items-center justify-center"><i class="fa-solid fa-floppy-disk mr-1.5"></i> Sauvegarder ce groupe</button>
                 </div>
 
                 <div id="playersList10000" class="space-y-3 pb-8"></div>
@@ -181,6 +199,17 @@
                         <button onclick="resetScores()" class="flex-1 md:flex-none text-blue-700 hover:text-blue-900 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Fin de partie (Scores à 0)"><i class="fa-solid fa-flag-checkered mr-1"></i> Fin de partie</button>
                         <button onclick="clearPlayers()" class="flex-1 md:flex-none text-red-700 hover:text-red-900 px-3 py-2 text-sm font-bold bg-white/40 rounded" title="Tout effacer"><i class="fa-solid fa-trash-can mr-1"></i> RAZ</button>
                     </div>
+                </div>
+
+                <!-- Gestion des Rivalités / Groupes (Scrabble) -->
+                <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 bg-[#8b4513]/10 p-3 rounded-lg border border-[#8b4513]/30 text-sm font-sans text-[#3e2723]">
+                    <div class="flex items-center space-x-2 w-full md:w-auto font-bold">
+                        <span class="whitespace-nowrap">Rivalités :</span>
+                        <select id="rivalrySelectScrabble" onchange="loadRivalryGroup(this.value)" class="flex-1 md:w-48 bg-white/70 border border-[#8b4513]/50 rounded px-2 py-1 text-[#3e2723] text-sm font-bold">
+                            <!-- Options remplies en JS -->
+                        </select>
+                    </div>
+                    <button onclick="saveCurrentGroupAsRivalry()" class="text-[#5c2e0e] hover:text-[#3e2723] font-bold bg-white/40 border border-[#8b4513]/50 px-3 py-1 rounded text-xs flex items-center justify-center"><i class="fa-solid fa-floppy-disk mr-1.5"></i> Sauvegarder ce groupe</button>
                 </div>
 
                 <div id="playersListScrabble" class="space-y-3 pb-8"></div>
@@ -296,17 +325,45 @@
             };
         }
 
-        // --- LOCAL STORAGE PERSISTENCE ---
+        // --- LOCAL STORAGE PERSISTENCE & LOAD ---
         function saveState() {
             try {
-                localStorage.setItem("compteur_jeux_state", JSON.stringify({
-                    gameMode,
-                    players,
-                    currentTurn,
-                    history
-                }));
+                localStorage.setItem("compteur_jeux_active_mode", gameMode);
+                if (gameMode === '10000' || gameMode === 'scrabble') {
+                    localStorage.setItem(`compteur_jeux_state_${gameMode}`, JSON.stringify({
+                        players,
+                        currentTurn,
+                        history
+                    }));
+                }
             } catch (e) {
                 console.error("Erreur de sauvegarde de l'état:", e);
+            }
+        }
+
+        function loadState(mode) {
+            try {
+                const saved = localStorage.getItem(`compteur_jeux_state_${mode}`);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    players = parsed.players || [];
+                    currentTurn = parsed.currentTurn || 0;
+                    history = parsed.history || [];
+                    
+                    // S'assurer que chaque joueur a un historique de scores initialisé
+                    players.forEach(p => {
+                        if (!p.scoresHistory) {
+                            p.scoresHistory = p.score > 0 ? [p.score] : [];
+                        }
+                    });
+                } else {
+                    // Réinitialisation par défaut pour ce jeu
+                    players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
+                    currentTurn = 0;
+                    history = [];
+                }
+            } catch (e) {
+                console.error(`Erreur lors du chargement de l'état pour ${mode}:`, e);
             }
         }
 
@@ -317,12 +374,144 @@
             }
         }
 
+        // --- PREDEFINED RIVALRIES (SAVED GROUPS) ---
+        function getRivalries() {
+            try {
+                return JSON.parse(localStorage.getItem("compteur_jeux_rivalries") || "[]");
+            } catch (e) {
+                console.error("Erreur de lecture des rivalités:", e);
+                return [];
+            }
+        }
+
+        function updateRivalrySelects() {
+            const rivalries = getRivalries();
+            
+            const selects = ['rivalrySelect10000', 'rivalrySelectScrabble'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+                
+                select.innerHTML = '<option value="">-- Charger une rivalité --</option>';
+                rivalries.forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r.id;
+                    option.text = `${r.name} (${r.playerNames.join(', ')})`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function saveCurrentGroupAsRivalry() {
+            if (players.length === 0) {
+                return alert("Il faut au moins 1 joueur pour enregistrer un groupe !");
+            }
+            
+            const name = prompt("Donnez un nom à cette rivalité / groupe (ex: 'La Famille', 'Parents') :");
+            if (!name || !name.trim()) return;
+            
+            const playerNames = players.map(p => p.name);
+            const rivalries = getRivalries();
+            
+            const existingIdx = rivalries.findIndex(r => r.name.toLowerCase() === name.trim().toLowerCase());
+            if (existingIdx !== -1) {
+                if (!confirm(`La rivalité "${name}" existe déjà. Voulez-vous la remplacer ?`)) return;
+                rivalries[existingIdx].playerNames = playerNames;
+            } else {
+                rivalries.push({
+                    id: Date.now(),
+                    name: name.trim(),
+                    playerNames: playerNames
+                });
+            }
+            
+            localStorage.setItem("compteur_jeux_rivalries", JSON.stringify(rivalries));
+            updateRivalrySelects();
+            alert(`Rivalité "${name}" enregistrée !`);
+        }
+
+        function loadRivalryGroup(rivalryId) {
+            if (!rivalryId) return;
+            
+            const rivalries = getRivalries();
+            const rivalry = rivalries.find(r => r.id == rivalryId);
+            if (!rivalry) return;
+            
+            if (confirm(`Charger la rivalité "${rivalry.name}" ? Cela écrasera la partie en cours.`)) {
+                players = rivalry.playerNames.map((name, idx) => ({
+                    id: Date.now() + idx,
+                    name: name,
+                    score: 0,
+                    scoresHistory: []
+                }));
+                currentTurn = 0;
+                history = [];
+                
+                // Clear selects
+                document.getElementById('rivalrySelect10000').value = "";
+                document.getElementById('rivalrySelectScrabble').value = "";
+                
+                broadcastState();
+                render();
+            } else {
+                document.getElementById('rivalrySelect10000').value = "";
+                document.getElementById('rivalrySelectScrabble').value = "";
+            }
+        }
+
         // --- GAME MODE ---
         function setGameMode(mode) {
+            if (gameMode === '10000' || gameMode === 'scrabble') {
+                saveState();
+            }
+            
             gameMode = mode;
+            
+            if (gameMode === '10000' || gameMode === 'scrabble') {
+                loadState(gameMode);
+            }
+            
             broadcastState();
             applyGameModeView();
             render();
+            
+            // Rafraîchir l'écran des stats
+            if (gameMode === 'stats') {
+                const lastGame = localStorage.getItem("compteur_jeux_active_mode");
+                if (lastGame === '10000' || lastGame === 'scrabble') {
+                    activeStatsTab = lastGame;
+                } else {
+                    activeStatsTab = '10000';
+                }
+                updateStatsTabSelect();
+                renderStats();
+            }
+            
+            // Rafraîchir les menus des rivalités
+            if (gameMode === '10000' || gameMode === 'scrabble') {
+                updateRivalrySelects();
+            }
+        }
+
+        let activeStatsTab = "10000"; // Mode de stats actif : "10000" ou "scrabble"
+
+        function setStatsTab(tab) {
+            activeStatsTab = tab;
+            updateStatsTabSelect();
+            renderStats();
+        }
+
+        function updateStatsTabSelect() {
+            const tab10000 = document.getElementById('statsTab10000');
+            const tabScrabble = document.getElementById('statsTabScrabble');
+            
+            if (activeStatsTab === '10000') {
+                tab10000.className = "flex-1 py-3 text-center font-bold border-b-2 border-yellow-500 text-yellow-500";
+                tabScrabble.className = "flex-1 py-3 text-center font-bold border-b-2 border-transparent text-slate-400 hover:text-white";
+            } else {
+                tab10000.className = "flex-1 py-3 text-center font-bold border-b-2 border-transparent text-slate-400 hover:text-white";
+                tabScrabble.className = "flex-1 py-3 text-center font-bold border-b-2 border-yellow-500 text-yellow-500";
+            }
         }
 
         function applyGameModeView() {
@@ -373,7 +562,10 @@
 
         function renderStats() {
             const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
-            const stats = JSON.parse(historyStats);
+            const allStats = JSON.parse(historyStats);
+            
+            // Filtrer par le jeu actif dans l'onglet des stats
+            const stats = allStats.filter(g => g.gameMode === activeStatsTab);
             
             document.getElementById('statsTotalGames').innerText = stats.length;
             
@@ -397,7 +589,7 @@
             const sortedPlayers = Object.entries(wins).sort((a, b) => b[1] - a[1]);
             
             if (sortedPlayers.length === 0) {
-                leaderboard.innerHTML = `<div class="text-sm text-slate-400 italic text-center py-4">Aucune partie enregistrée.</div>`;
+                leaderboard.innerHTML = `<div class="text-sm text-slate-400 italic text-center py-4">Aucune partie enregistrée pour ce jeu.</div>`;
             } else {
                 sortedPlayers.forEach(([name, count], index) => {
                     const row = document.createElement('div');
@@ -413,79 +605,124 @@
                 });
             }
             
-            const p1Select = document.getElementById('rivalPlayer1');
-            const p2Select = document.getElementById('rivalPlayer2');
+            // Remplir le selecteur de rivalités
+            const rivalrySelector = document.getElementById('statsRivalrySelector');
+            const prevVal = rivalrySelector.value;
             
-            const prevP1 = p1Select.value;
-            const prevP2 = p2Select.value;
+            rivalrySelector.innerHTML = '<option value="">-- Toutes les parties (Global) --</option>';
             
-            p1Select.innerHTML = `<option value="">-- Joueur 1 --</option>`;
-            p2Select.innerHTML = `<option value="">-- Joueur 2 --</option>`;
-            
-            Array.from(playerSet).sort().forEach(player => {
-                p1Select.innerHTML += `<option value="${player}">${player}</option>`;
-                p2Select.innerHTML += `<option value="${player}">${player}</option>`;
+            const rivalries = getRivalries();
+            rivalries.forEach(r => {
+                const option = document.createElement('option');
+                option.value = r.id;
+                option.text = `${r.name} (${r.playerNames.join(', ')})`;
+                rivalrySelector.appendChild(option);
             });
             
-            if (prevP1 && playerSet.has(prevP1)) p1Select.value = prevP1;
-            if (prevP2 && playerSet.has(prevP2)) p2Select.value = prevP2;
+            if (prevVal && rivalries.some(r => r.id == prevVal)) {
+                rivalrySelector.value = prevVal;
+            }
             
             renderRivalry();
         }
 
         function renderRivalry() {
-            const p1 = document.getElementById('rivalPlayer1').value;
-            const p2 = document.getElementById('rivalPlayer2').value;
+            const rivalryId = document.getElementById('statsRivalrySelector').value;
             const resultDiv = document.getElementById('rivalryResult');
             
-            if (!p1 || !p2) {
-                resultDiv.innerHTML = `<span class="text-slate-400 text-sm">Sélectionnez deux joueurs différents pour comparer leurs confrontations.</span>`;
-                return;
-            }
-            if (p1 === p2) {
-                resultDiv.innerHTML = `<span class="text-red-400 text-sm font-bold">Veuillez sélectionner deux personnes distinctes.</span>`;
-                return;
-            }
-            
             const historyStats = localStorage.getItem("compteur_jeux_stats") || "[]";
-            const stats = JSON.parse(historyStats);
+            const allStats = JSON.parse(historyStats);
+            const stats = allStats.filter(g => g.gameMode === activeStatsTab);
             
-            let p1Wins = 0;
-            let p2Wins = 0;
-            let totalMatchups = 0;
+            if (!rivalryId) {
+                resultDiv.innerHTML = `<span class="text-slate-400 text-sm">Sélectionnez une rivalité ci-dessus pour analyser les confrontations de ce groupe.</span>`;
+                return;
+            }
             
-            stats.forEach(game => {
-                const gamePlayers = game.players ? game.players.map(p => p.name) : [];
-                if (gamePlayers.includes(p1) && gamePlayers.includes(p2)) {
-                    totalMatchups++;
-                    if (game.winner === p1) p1Wins++;
-                    else if (game.winner === p2) p2Wins++;
-                }
+            const rivalries = getRivalries();
+            const rivalry = rivalries.find(r => r.id == rivalryId);
+            if (!rivalry) {
+                resultDiv.innerHTML = `<span class="text-red-400 text-sm">Rivalité introuvable.</span>`;
+                return;
+            }
+            
+            const rivalryNames = rivalry.playerNames.map(n => n.toLowerCase().trim()).sort();
+            
+            // Filtrer l'historique : ne garder que les parties où les participants sont exactement ceux de la rivalité
+            const matchedGames = stats.filter(game => {
+                if (!game.players || game.players.length !== rivalryNames.length) return false;
+                const gameNames = game.players.map(p => p.name.toLowerCase().trim()).sort();
+                return gameNames.every((name, idx) => name === rivalryNames[idx]);
             });
             
-            if (totalMatchups === 0) {
-                resultDiv.innerHTML = `<span class="text-slate-400 text-sm">Aucun match enregistré opposant ${p1} et ${p2}.</span>`;
-            } else {
-                const p1Pct = Math.round((p1Wins / totalMatchups) * 100);
-                const p2Pct = Math.round((p2Wins / totalMatchups) * 100);
-                
+            if (matchedGames.length === 0) {
                 resultDiv.innerHTML = `
-                    <div class="text-sm text-slate-400 mb-2">Confrontations : <strong class="text-white">${totalMatchups}</strong></div>
-                    <div class="flex justify-between items-center text-lg font-bold">
-                        <div class="text-left flex-1">
-                            <span class="text-white font-black">${p1}</span>
-                            <div class="text-3xl text-yellow-400 font-mono">${p1Wins}</div>
-                            <div class="text-xs text-slate-400">${p1Pct}% victoires</div>
-                        </div>
-                        <div class="px-4 font-black text-slate-500">VS</div>
-                        <div class="text-right flex-1">
-                            <span class="text-white font-black">${p2}</span>
-                            <div class="text-3xl text-yellow-400 font-mono">${p2Wins}</div>
-                            <div class="text-xs text-slate-400">${p2Pct}% victoires</div>
-                        </div>
+                    <div class="text-slate-400 text-sm">
+                        Aucune partie enregistrée pour le groupe <strong class="text-white">${rivalry.name}</strong> (${rivalry.playerNames.join(', ')}).
                     </div>
                 `;
+                return;
             }
+            
+            const statsSummary = {}; 
+            rivalry.playerNames.forEach(name => {
+                statsSummary[name] = { wins: 0, totalScore: 0, gamesPlayed: 0 };
+            });
+            
+            matchedGames.forEach(game => {
+                if (game.winner && statsSummary[game.winner]) {
+                    statsSummary[game.winner].wins++;
+                }
+                game.players.forEach(p => {
+                    if (statsSummary[p.name]) {
+                        statsSummary[p.name].totalScore += p.score;
+                        statsSummary[p.name].gamesPlayed++;
+                    }
+                });
+            });
+            
+            let html = `
+                <div class="text-sm text-slate-400 mb-3 text-left">
+                    Parties jouées ensemble : <strong class="text-white">${matchedGames.length}</strong>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-700 text-slate-400">
+                                <th class="py-2">Joueur</th>
+                                <th class="py-2 text-center">Victoires</th>
+                                <th class="py-2 text-center">Points cumulés</th>
+                                <th class="py-2 text-center">Moyenne</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            const sortedGroup = rivalry.playerNames.sort((a, b) => statsSummary[b].wins - statsSummary[a].wins);
+            
+            sortedGroup.forEach(name => {
+                const s = statsSummary[name];
+                const avg = s.gamesPlayed > 0 ? Math.round(s.totalScore / s.gamesPlayed) : 0;
+                const isWinner = s.wins > 0 && s.wins === Math.max(...rivalry.playerNames.map(n => statsSummary[n].wins));
+                const winClass = isWinner ? 'text-yellow-400 font-bold' : 'text-white';
+                
+                html += `
+                    <tr class="border-b border-slate-800">
+                        <td class="py-3 font-semibold ${winClass}">${name} ${isWinner ? '🏆' : ''}</td>
+                        <td class="py-3 text-center font-mono font-bold text-yellow-400">${s.wins}</td>
+                        <td class="py-3 text-center font-mono">${s.totalScore}</td>
+                        <td class="py-3 text-center font-mono text-slate-300">${avg}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
         }
 
         function clearStats() {
@@ -870,32 +1107,30 @@
         }
 
         // --- INIT ---
-        function loadState() {
+        function initApp() {
             try {
-                const saved = localStorage.getItem("compteur_jeux_state");
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    gameMode = parsed.gameMode || "menu";
-                    players = parsed.players || [];
-                    currentTurn = parsed.currentTurn || 0;
-                    history = parsed.history || [];
-                    
-                    // S'assurer que chaque joueur a un historique de scores initialisé
-                    players.forEach(p => {
-                        if (!p.scoresHistory) {
-                            p.scoresHistory = p.score > 0 ? [p.score] : [];
-                        }
-                    });
+                const lastMode = localStorage.getItem("compteur_jeux_active_mode");
+                gameMode = lastMode || "menu";
+                
+                if (gameMode === '10000' || gameMode === 'scrabble') {
+                    loadState(gameMode);
+                } else {
+                    gameMode = "menu";
+                    players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
+                    currentTurn = 0;
+                    history = [];
                 }
+                
+                // Charger la liste des rivalités enregistrées pour les selects
+                updateRivalrySelects();
             } catch (e) {
-                console.error("Erreur lors du chargement de l'état local:", e);
+                console.error("Erreur d'initialisation de l'app:", e);
             }
         }
 
-        loadState();
+        initApp();
         applyGameModeView();
         connectWebSocket();
-        if(players.length === 0) players = [{ id: 1, name: "Joueur 1", score: 0, scoresHistory: [] }];
         render();
 
         // --- PWA SERVICE WORKER ---
